@@ -26,7 +26,7 @@ func main() {
 
 	//use range function to trigger call trade function
 	for _ = range TriggerChannel {
-		individualTrades = Trades.Trade(Objects, ObjectsBuffer)
+		Objects, ObjectsBuffer, individualTrades = Trades.Trade(Objects, ObjectsBuffer)
 		allTrades = append(allTrades, individualTrades...)
 	}
 
