@@ -1,9 +1,10 @@
 package main
 
 import (
+	"Price_Notification_System/Output"
 	"Price_Notification_System/Trades"
-	"fmt"
 	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -14,7 +15,9 @@ func main() {
 
 	//Create variables that will hold the individual trades and all trades together
 	//as a slice of byte - which JSON format uses to store data
-	var individualTrades, allTrades []byte
+	//var allTrades []byte
+	individualTrades := make(chan []byte)
+	var wg sync.WaitGroup
 
 	//Create a channel of single bool - used to trigger trades
 	TriggerChannel := make(chan bool)
@@ -26,12 +29,19 @@ func main() {
 	//When the trade has been completed - print the trade out and
 	//add the trade to the 'allTrades' slice that holds 'all trades'
 	for _ = range TriggerChannel {
-		individualTrades = Trades.Trade(Objects)
-		fmt.Printf("%v\n", string(individualTrades))
-		allTrades = append(allTrades, individualTrades...)
+		wg.Add(1)
+		go Trades.Trade(Objects, individualTrades, &wg)
+		//fmt.Printf("%v\n", string(individualTrades))
+		//allTrades = append(allTrades, individualTrades...)
 	}
 
-	fmt.Printf("%v\n", string(allTrades))
+	//
+	wg.Add(1)
+	go Output.Outputs(individualTrades, &wg)
+
+	//Use wg.Wait function to
+	wg.Wait()
+	close(individualTrades)
 
 }
 
