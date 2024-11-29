@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -16,7 +17,8 @@ type TradeItems struct {
 
 // Trade function that creates a random trade from the 'tradeObjects' that have been passed to it,
 // marshalls this data into JSON format and return this from the function
-func Trade(tradeObjects []string) (TradedItemJSON []byte) {
+// func Trade(tradeObjects []string) (TradedItemJSON []byte) {
+func Trade(tradeObjects []string, individualTrades chan []byte, wg *sync.WaitGroup) {
 
 	//Create a 'random' trade
 	TradedItem := randomTrade(tradeObjects)
@@ -27,7 +29,10 @@ func Trade(tradeObjects []string) (TradedItemJSON []byte) {
 		fmt.Println(err)
 	}
 
-	return TradedItemJSON
+	//return TradedItemJSON
+	individualTrades <- TradedItemJSON
+	wg.Done()
+
 }
 
 func randomTrade(tradeObject []string) (TradedItem TradeItems) {
