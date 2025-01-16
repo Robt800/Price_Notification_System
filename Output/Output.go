@@ -1,15 +1,16 @@
-package Output
+package output
 
 import (
+	"context"
 	"fmt"
-	"sync"
 	"time"
 )
 
 // Outputs ensures the data from the channel (i.e. the trade) is genuine - if it is, it prints it
-func Outputs(producedData chan []byte, wg *sync.WaitGroup) {
+func Outputs(producedData chan []byte, ctx context.Context) error {
 	done := false
-	for !done {
+	for !done &&
+		(ctx.Err() == nil) {
 		select {
 		case tradeData, ok := <-producedData:
 			if !ok {
@@ -17,8 +18,11 @@ func Outputs(producedData chan []byte, wg *sync.WaitGroup) {
 			}
 			fmt.Printf("%v\n", string(tradeData))
 		case <-time.After(time.Second * 10):
-			wg.Done()
+			done = true
 		}
 	}
-	wg.Done()
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	return nil
 }

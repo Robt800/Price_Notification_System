@@ -1,10 +1,9 @@
-package Trades
+package trades
 
 import (
+	"context"
 	"encoding/json"
-	"fmt"
 	"math/rand"
-	"sync"
 	"time"
 )
 
@@ -18,7 +17,7 @@ type TradeItems struct {
 // Trade function that creates a random trade from the 'tradeObjects' that have been passed to it,
 // marshalls this data into JSON format and return this from the function
 // func Trade(tradeObjects []string) (TradedItemJSON []byte) {
-func Trade(tradeObjects []string, individualTrades chan []byte, wg *sync.WaitGroup) {
+func Trade(tradeObjects []string, individualTrades chan []byte, ctx context.Context) error {
 
 	//Create a 'random' trade
 	TradedItem := randomTrade(tradeObjects)
@@ -26,13 +25,16 @@ func Trade(tradeObjects []string, individualTrades chan []byte, wg *sync.WaitGro
 	//Marshall the traded struct into JSON format
 	TradedItemJSON, err := json.Marshal(TradedItem)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 
 	//return TradedItemJSON
 	individualTrades <- TradedItemJSON
-	wg.Done()
 
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	return nil
 }
 
 func randomTrade(tradeObject []string) (TradedItem TradeItems) {
