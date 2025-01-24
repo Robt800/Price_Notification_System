@@ -7,7 +7,7 @@ import (
 )
 
 // Outputs ensures the data from the channel (i.e. the trade) is genuine - if it is, it prints it
-func Outputs(producedData chan []byte, ctx context.Context) error {
+func Outputs(ctx context.Context, producedData chan []byte) error {
 	done := false
 	for !done &&
 		(ctx.Err() == nil) {
@@ -20,9 +20,6 @@ func Outputs(producedData chan []byte, ctx context.Context) error {
 		case <-time.After(time.Second * 10):
 			done = true
 		}
-	}
-	if ctx.Err() != nil {
-		return ctx.Err()
 	}
 	return nil
 }

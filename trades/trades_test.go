@@ -6,49 +6,61 @@ import (
 	"fmt"
 	"math"
 	"slices"
-	"sync"
 	"testing"
 	"time"
 )
 
-type args struct {
-	tradeObjects     []string
-	individualTrades chan []byte
-	ctx              context.Context
-}
-
-var tests = []args{
-	args{tradeObjects: []string{"Laptop", "PC", "Monitor", "Keyboard", "Mouse"}, individualTrades: make(chan []byte, 5), ctx: context.Background()},
-	args{tradeObjects: []string{"Table", "Chair", "Plate", "Knife", "Fork"}, individualTrades: make(chan []byte, 5), ctx: context.Background()},
-	args{tradeObjects: []string{"Corvette", "Ford", "Pontiac", "Dodge", "Cadillac"}, individualTrades: make(chan []byte, 5), ctx: context.Background()},
-}
-
-type returnedData struct {
-	fullTrade  string
-	item       string
-	dateStamp  string
-	price      string
-	priceAsInt int
-}
-
-var returnedDataSets = make([]returnedData, 3)
-
 func TestTrade(t *testing.T) {
-	var wg sync.WaitGroup
 
-	for i := range tests {
-		wg.Add(1)
-		go func(tt *args) {
-			defer wg.Done()
-			defer close(tt.individualTrades)
-			err := Trade(tt.tradeObjects, tt.individualTrades, tt.ctx)
-			if err != nil {
-				t.Error(err)
-			}
-		}(&tests[i])
+	type myTestDef struct {
+		param1  []string
+		param2	func() time.Time
+		want	string
 	}
 
-	wg.Wait()
+	var tests = []myTestDef{
+		myTestDef{param1: []string{"Laptop", "PC", "Monitor", "Keyboard", "Mouse"}, param2: func() time.Time { return time.Date(2024, time.January, 30, 16, 30, 0, 0, time.UTC) }},
+		myTestDef{param1: []string{"Table", "Chair", "Plate", "Knife", "Fork"}, param2: func() time.Time { return time.Date(2025, time.February, 25, 8, 15, 59, 0, time.UTC) }},
+		myTestDef{param1: []string{"Corvette", "Ford", "Pontiac", "Dodge", "Cadillac"}, param2: func() time.Time { return time.Date(2023, time.November, 05, 19, 29, 3, 0, time.UTC) } },
+	}
+
+//	type returnedData struct {
+//		fullTrade  string
+//		item       string
+//		dateStamp  string
+//		price      string
+//		priceAsInt int
+//	}
+
+//	var returnedDataSets = make([]returnedData, 3)
+
+
+	//for i := range tests {
+	//	defer close(t.individualTrades)
+	//	err := Trade(i.ctx, tt.tradeObjects, tt.individualTrades)
+	//	if err != nil {
+	//		t.Error(err)
+	//	}
+	//}(&tests[i])
+	//}
+
+
+	// Determine how to validate 1 test
+	want :=
+	ctx := context.Background()
+	resultChannel := make(chan []byte)
+	got := make([]byte,10,20)
+	err := tradeImpl(ctx, tests[0].param1, resultChannel, tests[0].param2)
+	if err != nil {
+		t.Error(err)
+	}
+	got = <-resultChannel
+
+	//Check to see see if we got what was expected
+	if got !=
+
+
+
 
 	//Get elements from the trade
 	fmt.Println("The returned data from the function is as follows:")
@@ -173,4 +185,8 @@ func strToInt(priceAsString string) (int, error) {
 		strValAsInt = (posMultiplier * val) + strValAsInt
 	}
 	return strValAsInt, nil
+}
+
+func expectedResults (tradeObjects []string, nowProvider func() time.Time) {
+
 }

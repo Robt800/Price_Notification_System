@@ -23,7 +23,7 @@ func TestOutputs1(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := Outputs(tt.args.producedData, tt.args.ctx); (err != nil) != tt.wantErr {
+			if err := Outputs(tt.args.ctx, tt.args.producedData); (err != nil) != tt.wantErr {
 				t.Errorf("Outputs() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
