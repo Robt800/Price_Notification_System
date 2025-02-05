@@ -69,6 +69,8 @@ func TestTrade(t *testing.T) {
 					if priceWithinTolerance := (tradedItem.Price >= 800) && (tradedItem.Price <= 1050); !priceWithinTolerance {
 						t.Errorf("The traded price of %v is outside the permissable range of 800 - 1050", tradedItem.Price)
 					}
+				default:
+					t.Error("No trade received on channel")
 				}
 			}
 		})

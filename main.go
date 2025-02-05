@@ -45,7 +45,7 @@ func main() {
 
 	//Call the output function to process the trade
 	eg.Go(func() error {
-		return output.Outputs(ctx, individualTrades)
+		return output.OutputsWithNotification(ctx, individualTrades)
 	})
 
 	//call method `Wait()` to ensure the program waits for all goroutines to complete
