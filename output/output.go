@@ -34,18 +34,36 @@ func Outputs(ctx context.Context, producedData chan []byte) error {
 
 func OutputsWithNotification(ctx context.Context, producedData chan []byte) error {
 
-	//Obtain the produced data from the channel
+	//Obtain the produced data from the channel & call 'processTradeFromChannel'
 	var actualTrade []byte
 	var ok bool
 
-	select {
-	case actualTrade, ok = <-producedData:
-		if !ok {
-			return nil
+	done := false
+	for !done {
+		select {
+		case actualTrade, ok = <-producedData:
+			if !ok {
+				done = true
+			}
+			err := processTradeFromChannel(ctx, actualTrade)
+			if err != nil {
+				return err
+			}
+		case <-time.After(time.Second * 10):
+			done = true
 		}
-	case <-time.After(time.Second * 10):
-		return nil
 	}
+	return nil
+}
+
+func processTradeFromChannel(ctx context.Context, actualTrade []byte) error {
+	var (
+		alert1                    alert
+		alertNeeded               bool
+		alertGenerated            chan []byte
+		alertFromChannel          []byte
+		alertFromChannelUnmarshal trades.TradeItems
+	)
 
 	//Unmarshall the trade into the principle elements for easier comparison
 	var tradedItem trades.TradeItems
@@ -55,22 +73,39 @@ func OutputsWithNotification(ctx context.Context, producedData chan []byte) erro
 		return err
 	}
 
-	//TEMPORARILY output minor details of the trade
-	fmt.Printf("The trade of %v was made at a price of %v", tradedItem.Object, tradedItem.Price)
+	//TEMPORARILY output minor details of the trade - used for testing - delete once happy - #TODO - delete once tested
+	fmt.Printf("The trade of %v was made at a price of %v\n", tradedItem.Object, tradedItem.Price)
 
 	//Create an instance of an alert
-	alert1 := alert{
+	alert1 = alert{
 		alertType:    "Price Alert - High Price",
 		object:       "Hulk Figure",
 		priceTrigger: 865,
 	}
 
 	//Determine if an alert is required
-	alertNeeded := alertRequired(ctx, tradedItem, alert1)
+	alertNeeded = alertRequired(ctx, tradedItem, alert1)
 
-	//Obtain details of the alert - TODO!!!!
+	//Create the channel to store the data
+	alertGenerated = make(chan []byte, 1)
+	defer close(alertGenerated)
+
+	//Obtain details of the alert and place in a channel
 	if alertNeeded {
-		fmt.Println(string(actualTrade))
+		alertGenerated <- actualTrade
+	}
+
+	//Consume the data from the alertGenerated channel
+	switch {
+	case alertNeeded:
+		alertFromChannel = <-alertGenerated
+
+		err = json.Unmarshal(alertFromChannel, &alertFromChannelUnmarshal)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("The following alert has been generated:\n Alert type: %v\n Details of the trade matching this alert: %v\n", alert1.alertType, alertFromChannelUnmarshal)
+
 	}
 
 	return nil
