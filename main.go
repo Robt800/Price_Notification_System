@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Price_Notification_System/api"
 	"Price_Notification_System/output"
 	"Price_Notification_System/trades"
 	"context"
@@ -47,6 +48,12 @@ func main() {
 	eg.Go(func() error {
 		return output.OutputsWithNotification(ctx, individualTrades)
 	})
+
+	//Run the HTTP server to allow API connections
+	errFromHTTPServer := api.HTTPServer(ctx)
+	if errFromHTTPServer != nil {
+		log.Fatal("Error from HTTP server:", errFromHTTPServer)
+	}
 
 	//call method `Wait()` to ensure the program waits for all goroutines to complete
 	err := eg.Wait()
