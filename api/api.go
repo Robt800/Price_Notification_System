@@ -3,6 +3,8 @@ package api
 import (
 	"context"
 	"github.com/gorilla/mux\"
+	"log"
+	"net/http"
 )
 
 func HTTPServer(ctx context.Context) error {
@@ -11,7 +13,10 @@ func HTTPServer(ctx context.Context) error {
 	r := mux.NewRouter()
 
 	//Define the routes
-	r.HandleFunc("/", HomeHandler).Methods("GET")
-	r.HandleFunc("/users", GetAllUsers).Methods("GET")
+	r.HandleFunc("/item_traded/{id}", GetItemPriceHandler).Methods("GET")
 
+	//Start the server
+	log.Fatal(http.ListenAndServe(":8080", r))
+
+	return nil
 }
