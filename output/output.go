@@ -32,7 +32,7 @@ func Outputs(ctx context.Context, producedData chan []byte) error {
 	return nil
 }
 
-func OutputsWithNotification(ctx context.Context, producedData chan []byte) error {
+func OutputsWithNotification(ctx context.Context, producedData chan []byte, itemTradeHistory *[]trades.TradeItems) error {
 
 	//Obtain the produced data from the channel & call 'processTradeFromChannel'
 	var actualTrade []byte
@@ -45,7 +45,7 @@ func OutputsWithNotification(ctx context.Context, producedData chan []byte) erro
 			if !ok {
 				done = true
 			}
-			err := processTradeFromChannel(ctx, actualTrade)
+			err := processTradeFromChannel(ctx, actualTrade, itemTradeHistory)
 			if err != nil {
 				return err
 			}
@@ -56,7 +56,7 @@ func OutputsWithNotification(ctx context.Context, producedData chan []byte) erro
 	return nil
 }
 
-func processTradeFromChannel(ctx context.Context, actualTrade []byte) error {
+func processTradeFromChannel(ctx context.Context, actualTrade []byte, itemTradeHistory *[]trades.TradeItems) error {
 	var (
 		alert1                    alert
 		alertNeeded               bool
@@ -72,6 +72,9 @@ func processTradeFromChannel(ctx context.Context, actualTrade []byte) error {
 	if err != nil {
 		return err
 	}
+
+	//Store the trade within a shared data store
+	*itemTradeHistory = append(*itemTradeHistory, tradedItem)
 
 	//TEMPORARILY output minor details of the trade - used for testing - delete once happy - #TODO - delete once tested
 	fmt.Printf("The trade of %v was made at a price of %v\n", tradedItem.Object, tradedItem.Price)

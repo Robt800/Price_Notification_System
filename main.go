@@ -20,6 +20,7 @@ func main() {
 		ctx              context.Context
 		objects          []string
 		individualTrades chan []byte
+		itemTradeHistory []trades.TradeItems
 	)
 
 	//create slice of objects that will be traded
@@ -46,11 +47,11 @@ func main() {
 
 	//Call the output function to process the trade
 	eg.Go(func() error {
-		return output.OutputsWithNotification(ctx, individualTrades)
+		return output.OutputsWithNotification(ctx, individualTrades, &itemTradeHistory)
 	})
 
 	//Run the HTTP server to allow API connections
-	errFromHTTPServer := api.HTTPServer(ctx)
+	errFromHTTPServer := api.HTTPServer(ctx, &itemTradeHistory)
 	if errFromHTTPServer != nil {
 		log.Fatal("Error from HTTP server:", errFromHTTPServer)
 	}
