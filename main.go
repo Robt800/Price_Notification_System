@@ -1,9 +1,9 @@
 package main
 
 import (
-	"Price_Notification_System/api"
+	"Price_Notification_System/Producer/Store"
+	"Price_Notification_System/Producer/trades"
 	"Price_Notification_System/output"
-	"Price_Notification_System/trades"
 	"context"
 	"fmt"
 	"golang.org/x/sync/errgroup"
@@ -19,17 +19,20 @@ func main() {
 		eg               *errgroup.Group
 		ctx              context.Context
 		objects          []string
-		individualTrades chan []byte
-		itemTradeHistory []trades.TradeItems
+		individualTrades chan trades.TradeItems
+		itemTradeHistory store.HistoricalData
 	)
 
 	//create slice of objects that will be traded
 	objects = []string{"Iron Man Figure", "Hulk Figure", "Deadpool Figure", "Wolverine Figure", "Spider-Man Figure",
 		"Thor Figure", "Superman Figure", "Batman Figure", "Wonder-Woman Figure", "Captain America Figure"}
 
-	//Create variables that will hold the individual trades as a slice of byte - which JSON format uses to store data
-	individualTrades = make(chan []byte)
+	//Create variables that will hold the individual trades as the TradeItems type from the trades package
+	individualTrades = make(chan trades.TradeItems)
 	defer close(individualTrades)
+
+	//Create an instance of the HistoricalData
+	itemTradeHistory = store.New()
 
 	//mainCtx instance to store the context which will be used - time of 100secs is allowed before context cancellation
 	mainCtx, cancel = context.WithTimeout(context.Background(), 100000*time.Millisecond)
@@ -42,19 +45,19 @@ func main() {
 
 	//Generate a 'trade' 'randomly' between 1-5 seconds
 	eg.Go(func() error {
-		return tradeTrigger(ctx, objects, individualTrades)
+		return tradeTrigger(ctx, objects, itemTradeHistory, individualTrades)
 	})
 
 	//Call the output function to process the trade
 	eg.Go(func() error {
-		return output.OutputsWithNotification(ctx, individualTrades, &itemTradeHistory)
+		return output.OutputsWithNotification(ctx, individualTrades, itemTradeHistory)
 	})
 
-	//Run the HTTP server to allow API connections
-	errFromHTTPServer := api.HTTPServer(ctx, &itemTradeHistory)
-	if errFromHTTPServer != nil {
-		log.Fatal("Error from HTTP server:", errFromHTTPServer)
-	}
+	//Run the HTTP server to allow API connections - #TODO update when rest of code sorted
+	//errFromHTTPServer := api.HTTPServer(ctx, &itemTradeHistory)
+	//if errFromHTTPServer != nil {
+	//	log.Fatal("Error from HTTP server:", errFromHTTPServer)
+	//}
 
 	//call method `Wait()` to ensure the program waits for all goroutines to complete
 	err := eg.Wait()
@@ -70,12 +73,12 @@ func main() {
 
 // Function that triggers a set amount of trades (equal to i max value).
 // trades are triggered 'randomly' between 1 and 5 second intervals.
-func tradeTrigger(ctx context.Context, objects []string, individualTrades chan []byte) error {
+func tradeTrigger(ctx context.Context, objects []string, itemTradeHistory store.HistoricalData, individualTrades chan trades.TradeItems) error {
 	for i := 0; i < 30; i++ {
 		randomSecs := int((rand.Float64() * 4.0) + 1)
 		time.Sleep(time.Duration(randomSecs) * time.Second)
 
-		errFromTrades := trades.Trade(ctx, objects, individualTrades)
+		errFromTrades := trades.Trade(ctx, objects, itemTradeHistory, individualTrades)
 		if errFromTrades != nil {
 			return errFromTrades
 		}

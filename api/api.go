@@ -1,14 +1,14 @@
 package api
 
 import (
-	"Price_Notification_System/trades"
+	store "Price_Notification_System/Producer/Store"
 	"context"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 )
 
-func HTTPServer(ctx context.Context, historicalTransactions *[]trades.TradeItems) error {
+func HTTPServer(ctx context.Context, itemTradeHistory store.HistoricalData) error {
 
 	//Create a mux router instance which can be used assign routes to etc.
 	r := mux.NewRouter()
