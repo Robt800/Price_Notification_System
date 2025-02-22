@@ -14,7 +14,7 @@ func HTTPServer(ctx context.Context, itemTradeHistory store.HistoricalData) erro
 	r := mux.NewRouter()
 
 	//Define the routes
-	r.HandleFunc("/item_traded/{id}", GetItemPriceHandler(historicalTransactions)).Methods("GET")
+	r.HandleFunc("/item_traded/{id}", GetItemPriceHandler(itemTradeHistory)).Methods("GET")
 
 	//Start the server
 	log.Fatal(http.ListenAndServe(":8080", r))
