@@ -1,14 +1,15 @@
 package api
 
 import (
-	"Price_Notification_System/trades"
+	store "Price_Notification_System/Producer/Store"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"time"
 )
 
-func GetItemPriceHandler(historicalTransactions *[]trades.TradeItems) http.HandlerFunc {
+func GetItemPriceHandler(historicalTransactions store.HistoricalData) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//Create key-value pairs (map) from the URL
 		vars := mux.Vars(r)
@@ -17,12 +18,12 @@ func GetItemPriceHandler(historicalTransactions *[]trades.TradeItems) http.Handl
 		itemsToReport := vars["id"]
 
 		//Create a var to store the results in
-		var results []trades.TradeItems
+		var results map[time.Time]store.HistoricalDataValues
 
 		//Range over the shared data store and store relevant transactions within the response slice
-		for _, v := range *historicalTransactions {
+		for k, v := range historicalTransactions {
 			if v.Object == itemsToReport {
-				results = append(results, v)
+				results[k] = v
 			}
 		}
 

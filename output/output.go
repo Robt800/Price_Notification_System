@@ -1,9 +1,8 @@
 package output
 
 import (
-	"Price_Notification_System/trades"
+	"Price_Notification_System/Producer/trades"
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -32,10 +31,10 @@ func Outputs(ctx context.Context, producedData chan []byte) error {
 	return nil
 }
 
-func OutputsWithNotification(ctx context.Context, producedData chan []byte, itemTradeHistory *[]trades.TradeItems) error {
+func OutputsWithNotification(ctx context.Context, producedData chan trades.TradeItems) error {
 
 	//Obtain the produced data from the channel & call 'processTradeFromChannel'
-	var actualTrade []byte
+	var actualTrade trades.TradeItems
 	var ok bool
 
 	done := false
@@ -45,7 +44,7 @@ func OutputsWithNotification(ctx context.Context, producedData chan []byte, item
 			if !ok {
 				done = true
 			}
-			err := processTradeFromChannel(ctx, actualTrade, itemTradeHistory)
+			err := processTradeFromChannel(ctx, actualTrade)
 			if err != nil {
 				return err
 			}
@@ -56,28 +55,16 @@ func OutputsWithNotification(ctx context.Context, producedData chan []byte, item
 	return nil
 }
 
-func processTradeFromChannel(ctx context.Context, actualTrade []byte, itemTradeHistory *[]trades.TradeItems) error {
+func processTradeFromChannel(ctx context.Context, actualTrade trades.TradeItems) error {
 	var (
-		alert1                    alert
-		alertNeeded               bool
-		alertGenerated            chan []byte
-		alertFromChannel          []byte
-		alertFromChannelUnmarshal trades.TradeItems
+		alert1           alert
+		alertNeeded      bool
+		alertGenerated   chan trades.TradeItems
+		alertFromChannel trades.TradeItems
 	)
 
-	//Unmarshall the trade into the principle elements for easier comparison
-	var tradedItem trades.TradeItems
-
-	err := json.Unmarshal(actualTrade, &tradedItem)
-	if err != nil {
-		return err
-	}
-
-	//Store the trade within a shared data store
-	*itemTradeHistory = append(*itemTradeHistory, tradedItem)
-
 	//TEMPORARILY output minor details of the trade - used for testing - delete once happy - #TODO - delete once tested
-	fmt.Printf("The trade of %v was made at a price of %v\n", tradedItem.Object, tradedItem.Price)
+	fmt.Printf("The trade of %v was made at a price of %v\n", actualTrade.Object, actualTrade.Price)
 
 	//Create an instance of an alert
 	alert1 = alert{
@@ -87,10 +74,10 @@ func processTradeFromChannel(ctx context.Context, actualTrade []byte, itemTradeH
 	}
 
 	//Determine if an alert is required
-	alertNeeded = alertRequired(ctx, tradedItem, alert1)
+	alertNeeded = alertRequired(ctx, actualTrade, alert1)
 
 	//Create the channel to store the data
-	alertGenerated = make(chan []byte, 1)
+	alertGenerated = make(chan trades.TradeItems, 1)
 	defer close(alertGenerated)
 
 	//Obtain details of the alert and place in a channel
@@ -103,11 +90,7 @@ func processTradeFromChannel(ctx context.Context, actualTrade []byte, itemTradeH
 	case alertNeeded:
 		alertFromChannel = <-alertGenerated
 
-		err = json.Unmarshal(alertFromChannel, &alertFromChannelUnmarshal)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("The following alert has been generated:\n Alert type: %v\n Details of the trade matching this alert: %v\n", alert1.alertType, alertFromChannelUnmarshal)
+		fmt.Printf("The following alert has been generated:\n Alert type: %v\n Details of the trade matching this alert: %v\n", alert1.alertType, alertFromChannel)
 
 	}
 
