@@ -69,7 +69,7 @@ func processTradeFromChannel(ctx context.Context, actualTrade trades.TradeItems,
 
 	//TEMPORARILY output minor details of the trade - used for testing - delete once happy - #TODO - delete once tested
 	//fmt.Printf("The trade of %v was made at a price of %v\n", actualTrade.Object, actualTrade.Price)
-	fmt.Printf("The full trade history is %v\n", tradeHistory)
+	fmt.Printf("The full trade history is %v items long\n", len(tradeHistory))
 
 	//Create an instance of an alert
 	alert1 = alert{
