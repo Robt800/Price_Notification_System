@@ -1,7 +1,6 @@
 package trades
 
 import (
-	store "Price_Notification_System/Producer/Store"
 	"context"
 	"math/rand"
 	"time"
@@ -17,16 +16,13 @@ type TradeItems struct {
 // Trade function that creates a random trade from the 'tradeObjects' that have been passed to it,
 // Also the main function is located within the tradeImpl function - the Trade function acts as a wrapper to this to
 // allow easier unit testing of the timestamp
-func Trade(ctx context.Context, tradeObjects []string, itemTradeHistory store.HistoricalData, individualTrades chan TradeItems) error {
-	return tradeImpl(ctx, tradeObjects, itemTradeHistory, individualTrades, func() time.Time { return time.Now() })
+func Trade(ctx context.Context, tradeObjects []string, individualTrades chan TradeItems) error {
+	return tradeImpl(ctx, tradeObjects, individualTrades, func() time.Time { return time.Now() })
 }
 
-func tradeImpl(ctx context.Context, tradeObjects []string, itemTradeHistory store.HistoricalData, individualTrades chan TradeItems, nowProvider func() time.Time) error {
+func tradeImpl(ctx context.Context, tradeObjects []string, individualTrades chan TradeItems, nowProvider func() time.Time) error {
 	//Create a 'random' trade
 	TradedItem := randomTrade(tradeObjects, nowProvider)
-
-	//Add the trade to the history
-	addTradeToHistory(itemTradeHistory, TradedItem)
 
 	//return TradedItem
 	individualTrades <- TradedItem
@@ -45,10 +41,4 @@ func randomTrade(tradeObject []string, nowProvider func() time.Time) (TradedItem
 		Price:     randPrice,
 	}
 	return TradedItem
-}
-
-func addTradeToHistory(tradeHistory store.HistoricalData, trade TradeItems) {
-	tradeDataValues := store.HistoricalDataValues{Object: trade.Object, Price: trade.Price}
-
-	tradeHistory.Add(trade.Timestamp, tradeDataValues)
 }

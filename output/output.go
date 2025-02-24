@@ -1,6 +1,7 @@
 package output
 
 import (
+	store "Price_Notification_System/Producer/Store"
 	"Price_Notification_System/Producer/trades"
 	"context"
 	"fmt"
@@ -31,7 +32,7 @@ func Outputs(ctx context.Context, producedData chan []byte) error {
 	return nil
 }
 
-func OutputsWithNotification(ctx context.Context, producedData chan trades.TradeItems) error {
+func OutputsWithNotification(ctx context.Context, producedData chan trades.TradeItems, tradeHistory store.HistoricalData) error {
 
 	//Obtain the produced data from the channel & call 'processTradeFromChannel'
 	var actualTrade trades.TradeItems
@@ -44,7 +45,7 @@ func OutputsWithNotification(ctx context.Context, producedData chan trades.Trade
 			if !ok {
 				done = true
 			}
-			err := processTradeFromChannel(ctx, actualTrade)
+			err := processTradeFromChannel(ctx, actualTrade, tradeHistory)
 			if err != nil {
 				return err
 			}
@@ -55,7 +56,7 @@ func OutputsWithNotification(ctx context.Context, producedData chan trades.Trade
 	return nil
 }
 
-func processTradeFromChannel(ctx context.Context, actualTrade trades.TradeItems) error {
+func processTradeFromChannel(ctx context.Context, actualTrade trades.TradeItems, tradeHistory store.HistoricalData) error {
 	var (
 		alert1           alert
 		alertNeeded      bool
@@ -63,8 +64,12 @@ func processTradeFromChannel(ctx context.Context, actualTrade trades.TradeItems)
 		alertFromChannel trades.TradeItems
 	)
 
+	//Add the trade to the history
+	addTradeToHistory(tradeHistory, actualTrade)
+
 	//TEMPORARILY output minor details of the trade - used for testing - delete once happy - #TODO - delete once tested
-	fmt.Printf("The trade of %v was made at a price of %v\n", actualTrade.Object, actualTrade.Price)
+	//fmt.Printf("The trade of %v was made at a price of %v\n", actualTrade.Object, actualTrade.Price)
+	fmt.Printf("The full trade history is %v\n", tradeHistory)
 
 	//Create an instance of an alert
 	alert1 = alert{
@@ -112,4 +117,10 @@ func alertRequired(ctx context.Context, actualTrade trades.TradeItems, alertPara
 		}
 	}
 	return false
+}
+
+func addTradeToHistory(tradeHistory store.HistoricalData, trade trades.TradeItems) {
+	tradeDataValues := store.HistoricalDataValues{Object: trade.Object, Price: trade.Price}
+
+	tradeHistory.Add(trade.Timestamp, tradeDataValues)
 }

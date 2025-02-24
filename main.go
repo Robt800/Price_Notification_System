@@ -46,12 +46,12 @@ func main() {
 
 	//Generate a 'trade' 'randomly' between 1-5 seconds
 	eg.Go(func() error {
-		return tradeTrigger(ctx, objects, itemTradeHistory, individualTrades)
+		return tradeTrigger(ctx, objects, individualTrades)
 	})
 
 	//Call the output function to process the trade
 	eg.Go(func() error {
-		return output.OutputsWithNotification(ctx, individualTrades)
+		return output.OutputsWithNotification(ctx, individualTrades, itemTradeHistory)
 	})
 
 	//Run the HTTP server to allow API connections - #TODO update when rest of code sorted
@@ -74,12 +74,12 @@ func main() {
 
 // Function that triggers a set amount of trades (equal to i max value).
 // trades are triggered 'randomly' between 1 and 5 second intervals.
-func tradeTrigger(ctx context.Context, objects []string, itemTradeHistory store.HistoricalData, individualTrades chan trades.TradeItems) error {
+func tradeTrigger(ctx context.Context, objects []string, individualTrades chan trades.TradeItems) error {
 	for i := 0; i < 30; i++ {
 		randomSecs := int((rand.Float64() * 4.0) + 1)
 		time.Sleep(time.Duration(randomSecs) * time.Second)
 
-		errFromTrades := trades.Trade(ctx, objects, itemTradeHistory, individualTrades)
+		errFromTrades := trades.Trade(ctx, objects, individualTrades)
 		if errFromTrades != nil {
 			return errFromTrades
 		}
