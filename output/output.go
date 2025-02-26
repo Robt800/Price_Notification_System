@@ -1,18 +1,12 @@
 package output
 
 import (
-	store "Price_Notification_System/Producer/Store"
-	"Price_Notification_System/Producer/trades"
+	store "Price_Notification_System/producer/store"
+	"Price_Notification_System/producer/trades"
 	"context"
 	"fmt"
 	"time"
 )
-
-type alert struct {
-	alertType    string //"Price Alert - Low Price", "Price Alert - High Price"
-	object       string
-	priceTrigger int
-}
 
 // Outputs ensures the data from the channel (i.e. the trade) is genuine - if it is, it prints it
 func Outputs(ctx context.Context, producedData chan []byte) error {
@@ -70,13 +64,6 @@ func processTradeFromChannel(ctx context.Context, actualTrade trades.TradeItems,
 	//TEMPORARILY output minor details of the trade - used for testing - delete once happy - #TODO - delete once tested
 	//fmt.Printf("The trade of %v was made at a price of %v\n", actualTrade.Object, actualTrade.Price)
 	fmt.Printf("The full trade history is %v items long\n", len(tradeHistory))
-
-	//Create an instance of an alert
-	alert1 = alert{
-		alertType:    "Price Alert - High Price",
-		object:       "Hulk Figure",
-		priceTrigger: 865,
-	}
 
 	//Determine if an alert is required
 	alertNeeded = alertRequired(ctx, actualTrade, alert1)

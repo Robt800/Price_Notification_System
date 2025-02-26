@@ -1,9 +1,8 @@
 package main
 
 import (
-	"Price_Notification_System/Producer/Store"
-	"Price_Notification_System/Producer/trades"
 	"Price_Notification_System/output"
+	"Price_Notification_System/producer/trades"
 	"context"
 	"fmt"
 	"golang.org/x/sync/errgroup"
@@ -20,7 +19,7 @@ func main() {
 		ctx              context.Context
 		objects          []string
 		individualTrades chan trades.TradeItems
-		itemTradeHistory store.HistoricalData
+		//itemTradeHistory store.HistoricalData
 	)
 
 	//create slice of objects that will be traded
@@ -32,7 +31,7 @@ func main() {
 	defer close(individualTrades)
 
 	//Create an instance of the HistoricalData
-	itemTradeHistory = store.New()
+	//itemTradeHistory = store.New()
 
 	//mainCtx instance to store the context which will be used - time of 100secs is allowed before context cancellation
 	mainCtx, cancel = context.WithTimeout(context.Background(), 100000*time.Millisecond)
