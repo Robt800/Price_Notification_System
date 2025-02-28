@@ -2,7 +2,9 @@ package main
 
 import (
 	"Price_Notification_System/output"
+	"Price_Notification_System/producer/store"
 	"Price_Notification_System/producer/trades"
+	"Price_Notification_System/service"
 	"context"
 	"fmt"
 	"golang.org/x/sync/errgroup"
@@ -19,7 +21,6 @@ func main() {
 		ctx              context.Context
 		objects          []string
 		individualTrades chan trades.TradeItems
-		//itemTradeHistory store.HistoricalData
 	)
 
 	//create slice of objects that will be traded
@@ -49,7 +50,7 @@ func main() {
 
 	//Call the output function to process the trade
 	eg.Go(func() error {
-		return output.OutputsWithNotification(ctx, individualTrades, itemTradeHistory)
+		return output.OutputsWithNotification(ctx, individualTrades, store.ItemTradeHistory)
 	})
 
 	//Run the HTTP server to allow API connections - #TODO update when rest of code sorted
@@ -67,6 +68,10 @@ func main() {
 	} else {
 		fmt.Println("All trades processed")
 	}
+
+	//temp workings #TODO delete once happy
+	tempStore := store.HistoricalData{}
+	servTempStore := service.NewHistoricalService(tempStore)
 
 }
 
