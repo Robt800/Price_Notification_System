@@ -4,7 +4,6 @@ import (
 	"Price_Notification_System/output"
 	"Price_Notification_System/producer/store"
 	"Price_Notification_System/producer/trades"
-	"Price_Notification_System/service"
 	"context"
 	"fmt"
 	"golang.org/x/sync/errgroup"
@@ -70,8 +69,19 @@ func main() {
 	}
 
 	//temp workings #TODO delete once happy
-	tempStore := store.HistoricalData{}
-	servTempStore := service.NewHistoricalService(tempStore)
+	//tempStore := store.HistoricalData{}
+	//servTempStore := service.NewHistoricalService(tempStore)
+	test1 := store.Storage(store.ItemTradeHistory)
+	test2 := store.NewStoreFromStorage(test1)
+
+	test3 := store.OverallStoreImpl{}
+	test4 := store.OverallStore(test3)
+
+	test4.Add(time.Now(), store.HistoricalDataValues{Object: "Iron", Price: 100})
+
+	test1 := store.OverallStore(store.Storage)
+	tempCommonStore := store.OverallStoreImpl{}
+	tempStoreOverall := store.OverallStore(tempCommonStore)
 
 }
 
