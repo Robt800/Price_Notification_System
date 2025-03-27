@@ -42,7 +42,7 @@ func TestInMemoryAlertDefStore_AddAlert(t *testing.T) {
 		t.Run(tt.instanceName, func(t *testing.T) {
 
 			//Create a new instance of the inMemoryAlertStore and set the data to the mockStoreAlerts
-			testInMemoryAlertStore := NewInMemoryAlertStore(nil).(*inMemoryAlertStore)
+			testInMemoryAlertStore := NewInMemoryAlertStore().(*InMemoryAlertStore)
 			testInMemoryAlertStore.data = tt.mockStoreAlerts
 
 			//Add the alert to the inMemoryAlertStore

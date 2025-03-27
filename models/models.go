@@ -49,3 +49,12 @@ type HistoricalTradeAlertReturned struct {
 
 // ErrNoDataMatchingAlertsFound - error message for when a trade is not found
 var ErrNoDataMatchingAlertsFound = errors.New("no trades matching alerts found")
+
+// AlertsByItemReturned - used to return the alerts that match a specific item
+type AlertsByItemReturned struct {
+	Item string
+	AlertValues
+}
+
+// ErrNoAlertsForItemFound - error message for when an alert is not found
+var ErrNoAlertsForItemFound = errors.New("no alerts for item found")

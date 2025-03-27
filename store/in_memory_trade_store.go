@@ -6,28 +6,28 @@ import (
 )
 
 // inMemoryTradeStore - concrete implementation of the TradeStore interface
-type inMemoryTradeStore struct {
-	tradeData map[time.Time]models.HistoricalDataValues
+type InMemoryTradeStore struct {
+	TradeData map[time.Time]models.HistoricalDataValues
 }
 
 // compile time check to ensure that inMemoryTradeStore implements the TradeStore interface
 // This won't be used within the code - but if not implemented correctly - the compiler will throw an error
-var _ TradeStore = &inMemoryTradeStore{}
+var _ TradeStore = &InMemoryTradeStore{}
 
 // NewInMemoryTradeStore - constructor function to create a new instance of the inMemoryTradeStore
 func NewInMemoryTradeStore() TradeStore {
-	return &inMemoryTradeStore{
-		tradeData: make(map[time.Time]models.HistoricalDataValues),
+	return &InMemoryTradeStore{
+		TradeData: make(map[time.Time]models.HistoricalDataValues),
 	}
 }
 
-func (i *inMemoryTradeStore) AddTrade(tradeTime time.Time, tradeValues models.HistoricalDataValues) {
-	i.tradeData[tradeTime] = tradeValues
+func (i *InMemoryTradeStore) AddTrade(tradeTime time.Time, tradeValues models.HistoricalDataValues) {
+	i.TradeData[tradeTime] = tradeValues
 }
 
-func (i *inMemoryTradeStore) GetTradeByItem(item string) (data []models.HistoricalTradeDataReturned, err error) {
+func (i *InMemoryTradeStore) GetTradeByItem(item string) (data []models.HistoricalTradeDataReturned, err error) {
 	var matchingData models.HistoricalTradeDataReturned
-	for tradeTime, tradeObjPrice := range i.tradeData {
+	for tradeTime, tradeObjPrice := range i.TradeData {
 
 		if tradeObjPrice.Object == item {
 			matchingData = models.HistoricalTradeDataReturned{
