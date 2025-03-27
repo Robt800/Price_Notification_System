@@ -19,44 +19,46 @@ func ProcessAlerts(
 	ctx context.Context,
 	alertStore store.AlertDefStore,
 	tradeStore store.TradeStore,
-	alertToProcess models.AlertDef,
-) (data []models.HistoricalTradeAlertReturned, err error) {
+	item string,
+) (alertActive bool, data []models.HistoricalTradeAlertReturned, err error) {
 
-	// iterate over the alerts and get the trade data that matches the alert item
-	for item, alertDef := range alertStore.data {
-		returnedData, errFromGetTradeByItem := i.tradeStore.GetTradeByItem(item)
-		if errFromGetTradeByItem != nil {
-			return nil, errFromGetTradeByItem
-		}
-
-		// iterate over the returned data and check if the price is alertable
-		if alertDef.AlertType == models.PriceAlertLowPrice {
-			for _, v := range returnedData {
-				if v.Price < alertDef.PriceTrigger {
-					data = append(data, models.HistoricalTradeAlertReturned{HistoricalTradeDataReturned: v,
-						AlertValues: models.AlertValues{
-							AlertType: alertDef.AlertType, PriceTrigger: alertDef.PriceTrigger,
-						},
-					})
-				}
-			}
-		} else if alertDef.AlertType == models.PriceAlertHighPrice {
-			for _, v := range returnedData {
-				if v.Price > alertDef.PriceTrigger {
-					data = append(data, models.HistoricalTradeAlertReturned{HistoricalTradeDataReturned: v,
-						AlertValues: models.AlertValues{
-							AlertType: alertDef.AlertType, PriceTrigger: alertDef.PriceTrigger,
-						},
-					})
-				}
-			}
-		}
-
+	// Get specific alerts for the item
+	alerts, errFromGetAlertsByItem := alertStore.GetAlertsByItem(item)
+	if errFromGetAlertsByItem != nil {
+		return false, nil, errFromGetAlertsByItem
 	}
+
+	//Get specific trades for the item
+	returnedData, errFromGetTradeByItem := tradeStore.GetTradeByItem(item)
+	if errFromGetTradeByItem != nil {
+		return false, nil, errFromGetTradeByItem
+	}
+
+	// iterate over the returned data and check if the price is alertable
+	for _, itemTrades := range returnedData {
+		for _, alertByItem := range alerts {
+			if alertByItem.AlertType == models.PriceAlertLowPrice {
+				if itemTrades.Price < alertByItem.PriceTrigger {
+					data = append(data, models.HistoricalTradeAlertReturned{HistoricalTradeDataReturned: itemTrades,
+						AlertValues: models.AlertValues{
+							AlertType: alertByItem.AlertType, PriceTrigger: alertByItem.PriceTrigger}})
+				}
+			}
+			if alertByItem.AlertType == models.PriceAlertHighPrice {
+				if itemTrades.Price > alertByItem.PriceTrigger {
+					data = append(data, models.HistoricalTradeAlertReturned{HistoricalTradeDataReturned: itemTrades,
+						AlertValues: models.AlertValues{
+							AlertType: alertByItem.AlertType, PriceTrigger: alertByItem.PriceTrigger}})
+				}
+			}
+		}
+	}
+
+	// Determine the return values
 	if len(data) > 0 {
-		return data, nil
+		return true, data, nil
 	} else {
-		return nil, models.ErrNoDataMatchingAlertsFound
+		return false, nil, models.ErrNoDataMatchingAlertsFound
 	}
 
 }
