@@ -2,8 +2,8 @@ package main
 
 import (
 	"Price_Notification_System/output"
-	"Price_Notification_System/producer/store"
 	"Price_Notification_System/producer/trades"
+	"Price_Notification_System/store"
 	"context"
 	"fmt"
 	"golang.org/x/sync/errgroup"
@@ -20,6 +20,7 @@ func main() {
 		ctx              context.Context
 		objects          []string
 		individualTrades chan trades.TradeItems
+		itemTradeHistory store.TradeStore
 	)
 
 	//create slice of objects that will be traded
@@ -31,7 +32,7 @@ func main() {
 	defer close(individualTrades)
 
 	//Create an instance of the HistoricalData
-	//itemTradeHistory = store.New()
+	itemTradeHistory = store.NewInMemoryTradeStore()
 
 	//mainCtx instance to store the context which will be used - time of 100secs is allowed before context cancellation
 	mainCtx, cancel = context.WithTimeout(context.Background(), 100000*time.Millisecond)
@@ -49,7 +50,7 @@ func main() {
 
 	//Call the output function to process the trade
 	eg.Go(func() error {
-		return output.OutputsWithNotification(ctx, individualTrades, store.ItemTradeHistory)
+		return output.OutputsWithNotification(ctx, individualTrades, itemTradeHistory)
 	})
 
 	//Run the HTTP server to allow API connections - #TODO update when rest of code sorted
@@ -67,21 +68,6 @@ func main() {
 	} else {
 		fmt.Println("All trades processed")
 	}
-
-	//temp workings #TODO delete once happy
-	//tempStore := store.HistoricalData{}
-	//servTempStore := service.NewHistoricalService(tempStore)
-	test1 := store.Storage(store.ItemTradeHistory)
-	test2 := store.NewStoreFromStorage(test1)
-
-	test3 := store.OverallStoreImpl{}
-	test4 := store.OverallStore(test3)
-
-	test4.Add(time.Now(), store.HistoricalDataValues{Object: "Iron", Price: 100})
-
-	test1 := store.OverallStore(store.Storage)
-	tempCommonStore := store.OverallStoreImpl{}
-	tempStoreOverall := store.OverallStore(tempCommonStore)
 
 }
 

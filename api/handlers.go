@@ -1,7 +1,7 @@
 package api
 
 import (
-	store "Price_Notification_System/producer/store"
+	store "Price_Notification_System/store"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"log"
