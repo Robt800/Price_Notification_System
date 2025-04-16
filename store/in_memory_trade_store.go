@@ -21,6 +21,13 @@ func NewInMemoryTradeStore() TradeStore {
 	}
 }
 
+// NewInMemoryTradeStoreWithData - constructor function to create a new instance of the inMemoryTradeStore with data
+func NewInMemoryTradeStoreWithData(data *map[time.Time]models.HistoricalDataValues) TradeStore {
+	return &InMemoryTradeStore{
+		TradeData: *data,
+	}
+}
+
 func (i *InMemoryTradeStore) AddTrade(tradeTime time.Time, tradeValues models.HistoricalDataValues) {
 	i.TradeData[tradeTime] = tradeValues
 }
