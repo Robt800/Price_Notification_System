@@ -9,6 +9,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"log"
 	"math/rand"
+	"os"
 	"time"
 )
 
@@ -50,7 +51,7 @@ func main() {
 
 	//Call the output function to process the trade
 	eg.Go(func() error {
-		return output.OutputsWithNotification(ctx, individualTrades, itemTradeHistory)
+		return output.Outputs(ctx, individualTrades, itemTradeHistory, os.Stdout)
 	})
 
 	//Run the HTTP server to allow API connections - #TODO update when rest of code sorted
