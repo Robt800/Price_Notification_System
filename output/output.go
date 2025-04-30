@@ -3,7 +3,7 @@ package output
 import (
 	"Price_Notification_System/models"
 	"Price_Notification_System/producer/trades"
-	store "Price_Notification_System/store"
+	"Price_Notification_System/store"
 	"context"
 	"fmt"
 	"io"
@@ -20,7 +20,10 @@ func Outputs(ctx context.Context, producedData chan trades.TradeItems, tradeStor
 			if !ok {
 				done = true
 			}
-			fmt.Fprintf(write, "%v\n", tradeData)
+			_, err := fmt.Fprintf(write, "%v\n", tradeData)
+			if err != nil {
+				return err
+			}
 			//fmt.Printf("%v\n", tradeData)
 			tradeStore.AddTrade(tradeData.Timestamp, models.HistoricalDataValues{Object: tradeData.Object, Price: tradeData.Price})
 		case <-time.After(time.Second * 10):
