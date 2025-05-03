@@ -2,7 +2,6 @@ package trades
 
 import (
 	"context"
-	"encoding/json"
 	"math/rand"
 	"time"
 )
@@ -15,25 +14,18 @@ type TradeItems struct {
 }
 
 // Trade function that creates a random trade from the 'tradeObjects' that have been passed to it,
-// marshalls this data into JSON format and return this from the function
 // Also the main function is located within the tradeImpl function - the Trade function acts as a wrapper to this to
 // allow easier unit testing of the timestamp
-func Trade(ctx context.Context, tradeObjects []string, individualTrades chan []byte) error {
+func Trade(ctx context.Context, tradeObjects []string, individualTrades chan TradeItems) error {
 	return tradeImpl(ctx, tradeObjects, individualTrades, func() time.Time { return time.Now() })
 }
 
-func tradeImpl(ctx context.Context, tradeObjects []string, individualTrades chan []byte, nowProvider func() time.Time) error {
+func tradeImpl(ctx context.Context, tradeObjects []string, individualTrades chan TradeItems, nowProvider func() time.Time) error {
 	//Create a 'random' trade
 	TradedItem := randomTrade(tradeObjects, nowProvider)
 
-	//Marshall the traded struct into JSON format
-	TradedItemJSON, err := json.Marshal(TradedItem)
-	if err != nil {
-		return err
-	}
-
-	//return TradedItemJSON
-	individualTrades <- TradedItemJSON
+	//return TradedItem
+	individualTrades <- TradedItem
 
 	return nil
 }
