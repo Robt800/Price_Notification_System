@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Price_Notification_System/api"
 	"Price_Notification_System/output"
 	"Price_Notification_System/producer/trades"
 	"Price_Notification_System/store"
@@ -54,11 +55,11 @@ func main() {
 		return output.Outputs(ctx, individualTrades, itemTradeHistory, os.Stdout)
 	})
 
-	//Run the HTTP server to allow API connections - #TODO update when rest of code sorted
-	//errFromHTTPServer := api.HTTPServer(ctx, itemTradeHistory)
-	//if errFromHTTPServer != nil {
-	//	log.Fatal("Error from HTTP server:", errFromHTTPServer)
-	//}
+	//Run the HTTP server to allow API connections
+	errFromHTTPServer := api.HTTPServer(ctx, itemTradeHistory)
+	if errFromHTTPServer != nil {
+		log.Fatal("Error from HTTP server:", errFromHTTPServer)
+	}
 
 	//call method `Wait()` to ensure the program waits for all goroutines to complete
 	err := eg.Wait()
@@ -75,7 +76,7 @@ func main() {
 // Function that triggers a set amount of trades (equal to i max value).
 // trades are triggered 'randomly' between 1 and 5 second intervals.
 func tradeTrigger(ctx context.Context, objects []string, individualTrades chan trades.TradeItems) error {
-	for i := 0; i < 30; i++ {
+	for i := 0; i < 300; i++ {
 		randomSecs := int((rand.Float64() * 4.0) + 1)
 		time.Sleep(time.Duration(randomSecs) * time.Second)
 
