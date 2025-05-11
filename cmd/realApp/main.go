@@ -37,7 +37,7 @@ func main() {
 	itemTradeHistory = store.NewInMemoryTradeStore()
 
 	//mainCtx instance to store the context which will be used - time of 100secs is allowed before context cancellation
-	mainCtx, cancel = context.WithTimeout(context.Background(), 100000*time.Millisecond)
+	mainCtx, cancel = context.WithTimeout(context.Background(), 10000*time.Millisecond)
 
 	//cancel function is called as final part of program to release resources associated with the context when the function returns
 	defer cancel()
@@ -56,10 +56,12 @@ func main() {
 	})
 
 	//Run the HTTP server to allow API connections
-	errFromHTTPServer := api.HTTPServer(ctx, itemTradeHistory)
-	if errFromHTTPServer != nil {
-		log.Fatal("Error from HTTP server:", errFromHTTPServer)
-	}
+	//errFromHTTPServer := api.HTTPServer(ctx, itemTradeHistory)
+	eg.Go(func() error { return api.HTTPServer(ctx, itemTradeHistory) })
+
+	//if errFromHTTPServer != nil {
+	//	log.Fatal("Error from HTTP server:", errFromHTTPServer)
+	//}
 
 	//call method `Wait()` to ensure the program waits for all goroutines to complete
 	err := eg.Wait()
@@ -84,6 +86,7 @@ func tradeTrigger(ctx context.Context, objects []string, individualTrades chan t
 		if errFromTrades != nil {
 			return errFromTrades
 		}
+		fmt.Printf("Trade %d\n", i)
 	}
 	return nil
 }
