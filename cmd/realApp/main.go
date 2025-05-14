@@ -57,7 +57,8 @@ func main() {
 
 	//Run the HTTP server to allow API connections
 	//errFromHTTPServer := api.HTTPServer(ctx, itemTradeHistory)
-	eg.Go(func() error { return api.HTTPServer(ctx, itemTradeHistory) })
+	ctxHTTPServer := context.Background()
+	eg.Go(func() error { return api.HTTPServer(ctxHTTPServer, itemTradeHistory) })
 
 	//if errFromHTTPServer != nil {
 	//	log.Fatal("Error from HTTP server:", errFromHTTPServer)

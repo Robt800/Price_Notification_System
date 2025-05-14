@@ -30,13 +30,6 @@ func GetTradesByItemHandler(ctx context.Context, itemTradeHistory store.TradeSto
 			log.Fatal("The HTTP server failed to get the results due to error: ", err)
 		}
 
-		////Range over the shared data store and store relevant transactions within the response slice
-		//for k, v := range itemTradeHistory {
-		//	if v.Object == itemsToReport {
-		//		results[k] = v
-		//	}
-		//}
-
 		//Convert the results to JSON in readiness to respond with the results
 		resultsJSON, err := json.Marshal(results)
 		if err != nil {
