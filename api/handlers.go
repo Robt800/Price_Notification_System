@@ -1,16 +1,19 @@
 package api
 
 import (
+	"Price_Notification_System/models"
+	"Price_Notification_System/service"
 	store "Price_Notification_System/store"
+	"context"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	"time"
 )
 
-func GetItemPriceHandler(historicalTransactions store.HistoricalData) http.HandlerFunc {
+func GetTradesByItemHandler(ctx context.Context, itemTradeHistory store.TradeStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		//Create key-value pairs (map) from the URL
 		vars := mux.Vars(r)
 
@@ -18,13 +21,13 @@ func GetItemPriceHandler(historicalTransactions store.HistoricalData) http.Handl
 		itemsToReport := vars["id"]
 
 		//Create a var to store the results in
-		var results map[time.Time]store.HistoricalDataValues
+		var results []models.HistoricalTradeDataReturned
+		var err error
 
-		//Range over the shared data store and store relevant transactions within the response slice
-		for k, v := range historicalTransactions {
-			if v.Object == itemsToReport {
-				results[k] = v
-			}
+		//Call the function from the service package
+		results, err = service.GetTradesByItem(ctx, itemTradeHistory, itemsToReport)
+		if err != nil {
+			log.Fatal("The HTTP server failed to get the results due to error: ", err)
 		}
 
 		//Convert the results to JSON in readiness to respond with the results

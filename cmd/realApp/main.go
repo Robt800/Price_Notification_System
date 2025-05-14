@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Price_Notification_System/api"
 	"Price_Notification_System/output"
 	"Price_Notification_System/producer/trades"
 	"Price_Notification_System/store"
@@ -36,7 +37,7 @@ func main() {
 	itemTradeHistory = store.NewInMemoryTradeStore()
 
 	//mainCtx instance to store the context which will be used - time of 100secs is allowed before context cancellation
-	mainCtx, cancel = context.WithTimeout(context.Background(), 100000*time.Millisecond)
+	mainCtx, cancel = context.WithTimeout(context.Background(), 10000*time.Millisecond)
 
 	//cancel function is called as final part of program to release resources associated with the context when the function returns
 	defer cancel()
@@ -54,8 +55,11 @@ func main() {
 		return output.Outputs(ctx, individualTrades, itemTradeHistory, os.Stdout)
 	})
 
-	//Run the HTTP server to allow API connections - #TODO update when rest of code sorted
+	//Run the HTTP server to allow API connections
 	//errFromHTTPServer := api.HTTPServer(ctx, itemTradeHistory)
+	ctxHTTPServer := context.Background()
+	eg.Go(func() error { return api.HTTPServer(ctxHTTPServer, itemTradeHistory) })
+
 	//if errFromHTTPServer != nil {
 	//	log.Fatal("Error from HTTP server:", errFromHTTPServer)
 	//}
@@ -75,7 +79,7 @@ func main() {
 // Function that triggers a set amount of trades (equal to i max value).
 // trades are triggered 'randomly' between 1 and 5 second intervals.
 func tradeTrigger(ctx context.Context, objects []string, individualTrades chan trades.TradeItems) error {
-	for i := 0; i < 30; i++ {
+	for i := 0; i < 300; i++ {
 		randomSecs := int((rand.Float64() * 4.0) + 1)
 		time.Sleep(time.Duration(randomSecs) * time.Second)
 
@@ -83,6 +87,7 @@ func tradeTrigger(ctx context.Context, objects []string, individualTrades chan t
 		if errFromTrades != nil {
 			return errFromTrades
 		}
+		fmt.Printf("Trade %d\n", i)
 	}
 	return nil
 }

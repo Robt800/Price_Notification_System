@@ -2,6 +2,7 @@ package trades
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"time"
 )
@@ -27,6 +28,10 @@ func tradeImpl(ctx context.Context, tradeObjects []string, individualTrades chan
 	//return TradedItem
 	individualTrades <- TradedItem
 
+	if ctx.Err() != nil {
+		fmt.Printf("Context cancelled with error:%v\n", ctx.Err())
+		return ctx.Err()
+	}
 	return nil
 }
 
