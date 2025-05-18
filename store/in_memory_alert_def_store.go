@@ -6,7 +6,7 @@ import (
 
 // InMemoryAlertStore - concrete implementation of the AlertDefStore interface
 type InMemoryAlertStore struct {
-	data []models.AlertDef
+	Data []models.AlertDef
 }
 
 // compile time check to ensure that inMemoryTradeStore implements the TradeStore interface
@@ -15,26 +15,26 @@ var _ AlertDefStore = &InMemoryAlertStore{}
 
 func NewInMemoryAlertStore() AlertDefStore {
 	return &InMemoryAlertStore{
-		data: make([]models.AlertDef, 0, 20),
+		Data: make([]models.AlertDef, 0, 20),
 	}
 }
 
 func NewInMemoryAlertStoreWithData(data *[]models.AlertDef) AlertDefStore {
 	return &InMemoryAlertStore{
-		data: *data,
+		Data: *data,
 	}
 }
 
 // AddAlert - adds a new alert to the alerts active - i.e. the private memory store used to facilitate easier testing
 func (i *InMemoryAlertStore) AddAlert(itemToAlert string, newAlertDef models.AlertValues) {
 	//i.data[it = newAlertDef
-	i.data = append(i.data, models.AlertDef{Item: itemToAlert, AlertValues: newAlertDef})
+	i.Data = append(i.Data, models.AlertDef{Item: itemToAlert, AlertValues: newAlertDef})
 }
 
 // GetAlertsByItem - retrieves the alerts for a specific item
 func (i *InMemoryAlertStore) GetAlertsByItem(item string) (data []models.AlertsByItemReturned, err error) {
 	var matchingData models.AlertsByItemReturned
-	for _, v := range i.data {
+	for _, v := range i.Data {
 
 		if v.Item == item {
 			matchingData = models.AlertsByItemReturned{

@@ -1,4 +1,4 @@
-package tests
+package service
 
 import (
 	"Price_Notification_System/models"
@@ -22,7 +22,7 @@ func TestTradeService_GetTradesByItem(t *testing.T) {
 	}
 
 	tests := []testDefGetTradesByItem{
-		{instanceName: "test1 - Get trades for hulk item", tradeStore: store.NewInMemoryTradeStoreWithData(map[time.Time]models.HistoricalDataValues{
+		{instanceName: "test1 - Get trades for hulk item", tradeStore: store.NewInMemoryTradeStoreWithData(&map[time.Time]models.HistoricalDataValues{
 			time.Date(2024, 3, 10, 23, 20, 0, 0, time.UTC): {Object: "hulk", Price: 975},
 			time.Date(2025, 1, 12, 3, 20, 0, 0, time.UTC):  {Object: "spider man", Price: 975},
 			time.Date(2024, 5, 15, 3, 15, 30, 0, time.UTC): {Object: "hulk", Price: 854},
@@ -32,7 +32,7 @@ func TestTradeService_GetTradesByItem(t *testing.T) {
 				{Date: time.Date(2024, 5, 15, 3, 15, 30, 0, time.UTC), HistoricalDataValues: models.HistoricalDataValues{Object: "hulk", Price: 854}},
 			},
 			expectedError: nil, wantErr: false},
-		{instanceName: "test2 - Get trades for wolverine item", tradeStore: store.NewInMemoryTradeStoreWithData(map[time.Time]models.HistoricalDataValues{
+		{instanceName: "test2 - Get trades for wolverine item", tradeStore: store.NewInMemoryTradeStoreWithData(&map[time.Time]models.HistoricalDataValues{
 			time.Date(2023, 3, 12, 23, 20, 0, 0, time.UTC): {Object: "wolverine", Price: 975},
 			time.Date(2025, 1, 15, 3, 20, 0, 0, time.UTC):  {Object: "superman", Price: 250},
 			time.Date(2024, 5, 18, 3, 15, 30, 0, time.UTC): {Object: "wolverine", Price: 790},
@@ -42,7 +42,7 @@ func TestTradeService_GetTradesByItem(t *testing.T) {
 				{Date: time.Date(2024, 5, 18, 3, 15, 30, 0, time.UTC), HistoricalDataValues: models.HistoricalDataValues{Object: "wolverine", Price: 790}},
 			},
 			expectedError: nil, wantErr: false},
-		{instanceName: "test3 - Ensure no matching trades are handled correctly", tradeStore: store.NewInMemoryTradeStoreWithData(map[time.Time]models.HistoricalDataValues{
+		{instanceName: "test3 - Ensure no matching trades are handled correctly", tradeStore: store.NewInMemoryTradeStoreWithData(&map[time.Time]models.HistoricalDataValues{
 			time.Date(2023, 3, 12, 23, 20, 0, 0, time.UTC): {Object: "wolverine", Price: 975},
 			time.Date(2025, 1, 15, 3, 20, 0, 0, time.UTC):  {Object: "superman", Price: 250},
 			time.Date(2024, 5, 18, 3, 15, 30, 0, time.UTC): {Object: "wolverine", Price: 790},

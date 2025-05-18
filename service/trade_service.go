@@ -62,3 +62,15 @@ func ProcessAlerts(
 	}
 
 }
+
+func CreateNewAlert(
+	ctx context.Context,
+	alertStore store.AlertDefStore,
+	item string,
+	newAlertDef models.AlertValues,
+) (err error) {
+
+	// Add the alert to the alert store
+	alertStore.AddAlert(item, newAlertDef)
+	return nil
+}

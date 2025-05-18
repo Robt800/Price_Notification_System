@@ -23,6 +23,7 @@ func main() {
 		objects          []string
 		individualTrades chan trades.TradeItems
 		itemTradeHistory store.TradeStore
+		alertStore       store.AlertDefStore
 	)
 
 	//create slice of objects that will be traded
@@ -33,11 +34,12 @@ func main() {
 	individualTrades = make(chan trades.TradeItems)
 	defer close(individualTrades)
 
-	//Create an instance of the HistoricalData
+	//Create instances of the HistoricalData/ Alerts store
 	itemTradeHistory = store.NewInMemoryTradeStore()
+	alertStore = store.NewInMemoryAlertStore()
 
 	//mainCtx instance to store the context which will be used - time of 100secs is allowed before context cancellation
-	mainCtx, cancel = context.WithTimeout(context.Background(), 10000*time.Millisecond)
+	mainCtx = context.Background()
 
 	//cancel function is called as final part of program to release resources associated with the context when the function returns
 	defer cancel()
@@ -56,13 +58,8 @@ func main() {
 	})
 
 	//Run the HTTP server to allow API connections
-	//errFromHTTPServer := api.HTTPServer(ctx, itemTradeHistory)
 	ctxHTTPServer := context.Background()
-	eg.Go(func() error { return api.HTTPServer(ctxHTTPServer, itemTradeHistory) })
-
-	//if errFromHTTPServer != nil {
-	//	log.Fatal("Error from HTTP server:", errFromHTTPServer)
-	//}
+	eg.Go(func() error { return api.HTTPServer(ctxHTTPServer, itemTradeHistory, alertStore) })
 
 	//call method `Wait()` to ensure the program waits for all goroutines to complete
 	err := eg.Wait()
