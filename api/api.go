@@ -8,22 +8,23 @@ import (
 	"net/http"
 )
 
-func HTTPServer(ctx context.Context, itemTradeHistory store.TradeStore) error {
+func HTTPServer(ctx context.Context, itemTradeHistory store.TradeStore, alertsDefined store.AlertDefStore) error {
 
 	//Create a mux router instance which can be used assign routes to etc.
 	r := mux.NewRouter()
 
 	//Define the routes
 	r.HandleFunc("/item_traded/{id}", GetTradesByItemHandler(ctx, itemTradeHistory)).Methods("GET")
+	r.HandleFunc("/create_alert/{id}", CreateNewAlertHandler(ctx, alertsDefined)).Methods("POST")
+	r.HandleFunc("/all_defined_alerts", GetAllDefinedAlertsHandler(ctx, alertsDefined)).Methods("GET")
 
-	//Start the server
-	//log.Fatal(http.ListenAndServe(":8080", r))
-
+	//Check if the context has been cancelled
 	if ctx.Err() != nil {
 		fmt.Printf("Context error:%v", ctx.Err())
 		return ctx.Err()
 	}
 
+	//Start the server
 	httpError := http.ListenAndServe(":8080", r)
 
 	if httpError != nil {

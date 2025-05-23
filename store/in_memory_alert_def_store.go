@@ -2,6 +2,7 @@ package store
 
 import (
 	"Price_Notification_System/models"
+	"fmt"
 )
 
 // InMemoryAlertStore - concrete implementation of the AlertDefStore interface
@@ -51,5 +52,14 @@ func (i *InMemoryAlertStore) GetAlertsByItem(item string) (data []models.AlertsB
 		return data, nil
 	} else {
 		return nil, models.ErrNoAlertsForItemFound
+	}
+}
+
+// GetAllAlerts - retrieves all the alerts
+func (i *InMemoryAlertStore) GetAllAlerts() (data []models.AlertDef, err error) {
+	if len(i.data) > 0 {
+		return i.data, nil
+	} else {
+		return nil, fmt.Errorf("no alerts found")
 	}
 }

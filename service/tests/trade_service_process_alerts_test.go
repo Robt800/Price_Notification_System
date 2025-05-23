@@ -1,4 +1,4 @@
-package tests
+package service
 
 import (
 	"Price_Notification_System/models"
