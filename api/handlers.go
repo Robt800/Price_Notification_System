@@ -30,19 +30,19 @@ func GetTradesByItemHandler(ctx context.Context, itemTradeHistory store.TradeSto
 		//Call the function from the service package
 		results, err = service.GetTradesByItem(ctx, itemTradeHistory, itemsToReport)
 		if err != nil {
-			log.Fatal("The HTTP server failed to get the results due to error: ", err)
+			log.Println("The HTTP server failed to get the results due to error: ", err)
 		}
 
 		//Convert the results to JSON in readiness to respond with the results
 		resultsJSON, err := json.Marshal(results)
 		if err != nil {
-			log.Fatal("The HTTP server failed to get the results due to error: ", err)
+			log.Println("The HTTP server failed to get the results due to error: ", err)
 		}
 
 		//Write the results to the
 		_, errWrite := w.Write(resultsJSON)
 		if errWrite != nil {
-			log.Fatal("The HTTP server failed to return the results due to error: ", errWrite)
+			log.Println("The HTTP server failed to get the results due to error: ", err)
 		}
 	}
 }
@@ -67,7 +67,10 @@ func CreateNewAlertHandler(ctx context.Context, alertsDefined store.AlertDefStor
 		if err != nil {
 			responseConfirmationString = fmt.Sprintf("There was an error trying to get the item details from the url.  Error: %v", err)
 			responseConfirmationStringJSON, _ = json.Marshal(responseConfirmationString)
-			_, _ = w.Write(responseConfirmationStringJSON)
+			_, err = w.Write(responseConfirmationStringJSON)
+			if err != nil {
+				log.Print("Error writing response: ", err)
+			}
 			return
 		}
 
@@ -77,14 +80,20 @@ func CreateNewAlertHandler(ctx context.Context, alertsDefined store.AlertDefStor
 		if err != nil {
 			responseConfirmationString = fmt.Sprintf("The HTTP server failed to get the results due to error: %v", err)
 			responseConfirmationStringJSON, _ = json.Marshal(responseConfirmationString)
-			_, _ = w.Write(responseConfirmationStringJSON)
+			_, err = w.Write(responseConfirmationStringJSON)
+			if err != nil {
+				log.Print("Error writing response: ", err)
+			}
 			return
 		}
 
 		// If the alert was created successfully, return a confirmation message
 		responseConfirmationString = fmt.Sprintf("The alert for item %s has been created successfully.\n The alert type is %d, and the price trigger is %d", item, alertType, priceTrigger)
 		responseConfirmationStringJSON, _ = json.Marshal(responseConfirmationString)
-		_, _ = w.Write(responseConfirmationStringJSON)
+		_, err = w.Write(responseConfirmationStringJSON)
+		if err != nil {
+			log.Print("Error writing response: ", err)
+		}
 
 	}
 }
@@ -92,8 +101,18 @@ func CreateNewAlertHandler(ctx context.Context, alertsDefined store.AlertDefStor
 func GetAllDefinedAlertsHandler(ctx context.Context, alertsDefined store.AlertDefStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		dataAlertsDefined, err := alertsDefined.GetAllAlerts()
+		if err != nil {
+			marshalledError, _ := json.Marshal(err)
+			_, errWrite := w.Write(marshalledError)
+			if errWrite != nil {
+				log.Println("The HTTP server failed to get the results due to error: ", err)
+			}
+			return
+		}
+
 		//Convert the results to JSON in readiness to respond with the results
-		resultsJSON, err := json.Marshal(alertsDefined)
+		resultsJSON, err := json.Marshal(dataAlertsDefined)
 		if err != nil {
 			errJSON, _ := json.Marshal(err)
 			_, _ = w.Write(errJSON)

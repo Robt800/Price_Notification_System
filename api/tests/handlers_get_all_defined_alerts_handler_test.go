@@ -26,7 +26,7 @@ func TestGetAllDefinedAlertsHandler(t *testing.T) {
 				{Item: "item1", AlertValues: models.AlertValues{AlertType: models.PriceAlertLowPrice, PriceTrigger: 100}},
 				{Item: "item2", AlertValues: models.AlertValues{AlertType: models.PriceAlertHighPrice, PriceTrigger: 200}},
 			}),
-			expected: []byte(`{"Data":[{"Item":"item1","AlertType":0,"PriceTrigger":100},{"Item":"item2","AlertType":1,"PriceTrigger":200}]}`),
+			expected: []byte(`{"data":[{"Item":"item1","AlertType":0,"PriceTrigger":100},{"Item":"item2","AlertType":1,"PriceTrigger":200}]}`),
 			wantErr:  false,
 		},
 		{testInstanceName: "test2 - Get all defined alerts",
@@ -34,7 +34,7 @@ func TestGetAllDefinedAlertsHandler(t *testing.T) {
 				{Item: "item3", AlertValues: models.AlertValues{AlertType: 0, PriceTrigger: 300}},
 				{Item: "item4", AlertValues: models.AlertValues{AlertType: 1, PriceTrigger: 400}},
 			}),
-			expected: []byte(`{"Data":[{"Item":"item3","AlertType":0,"PriceTrigger":300},{"Item":"item4","AlertType":1,"PriceTrigger":400}]}`),
+			expected: []byte(`{"data":[{"Item":"item3","AlertType":0,"PriceTrigger":300},{"Item":"item4","AlertType":1,"PriceTrigger":400}]}`),
 			wantErr:  false,
 		},
 	}
