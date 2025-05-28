@@ -8,8 +8,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -21,7 +23,7 @@ func GetTradesByItemHandler(ctx context.Context, itemTradeHistory store.TradeSto
 		vars := mux.Vars(r)
 
 		//Obtain from the url which item we are interested in reporting
-		itemsToReport := vars["id"]
+		itemsToReport := vars["item"]
 
 		//Create a var to store the results in
 		var results []models.HistoricalTradeDataReturned
@@ -49,23 +51,30 @@ func GetTradesByItemHandler(ctx context.Context, itemTradeHistory store.TradeSto
 
 func CreateNewAlertHandler(ctx context.Context, alertsDefined store.AlertDefStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		//Return a 200 OK response
-		w.WriteHeader(http.StatusOK)
 
 		//Create a var to store the response in
 		var responseConfirmationString string
 		var responseConfirmationStringJSON []byte
 
 		//Create key-value pairs (map) from the URL
-		vars := mux.Vars(r)
+		//vars := mux.Vars(r)
 
 		//Obtain from the url which item we are interested in reporting - expected format is item,alertType,priceTrigger
-		newAlertDetails := vars["id"]
-
-		// Split out the new alert details
-		item, alertType, priceTrigger, err := CreateNewAlertIDSplit(newAlertDetails)
+		newAlertItem, err := CreateNewAlertObtainItemFromURL(r)
 		if err != nil {
-			responseConfirmationString = fmt.Sprintf("There was an error trying to get the item details from the url.  Error: %v", err)
+			responseConfirmationString = fmt.Sprintf("There was an error trying to get the item details from the HTTP request.  Error: %v", err)
+			responseConfirmationStringJSON, _ = json.Marshal(responseConfirmationString)
+			_, err = w.Write(responseConfirmationStringJSON)
+			if err != nil {
+				log.Print("Error writing response: ", err)
+			}
+			return
+		}
+
+		// Split out the new alert details - this is expected to be in the request body as key value pairs (alertType, priceTrigger) - of the format url encoded string
+		alertType, priceTrigger, err := CreateNewAlertRequestBodyParameters(r)
+		if err != nil {
+			responseConfirmationString = fmt.Sprintf("There was an error trying to get the item details from the HTTP request.  Error: %v", err)
 			responseConfirmationStringJSON, _ = json.Marshal(responseConfirmationString)
 			_, err = w.Write(responseConfirmationStringJSON)
 			if err != nil {
@@ -75,7 +84,7 @@ func CreateNewAlertHandler(ctx context.Context, alertsDefined store.AlertDefStor
 		}
 
 		//Call the function from the service package
-		err = service.CreateNewAlert(ctx, alertsDefined, item, models.AlertValues{AlertType: alertType, PriceTrigger: priceTrigger})
+		err = service.CreateNewAlert(ctx, alertsDefined, newAlertItem, models.AlertValues{AlertType: alertType, PriceTrigger: priceTrigger})
 		//results, err = service.ProcessAlerts(ctx, alertsDefined, itemsToReport)
 		if err != nil {
 			responseConfirmationString = fmt.Sprintf("The HTTP server failed to get the results due to error: %v", err)
@@ -88,7 +97,7 @@ func CreateNewAlertHandler(ctx context.Context, alertsDefined store.AlertDefStor
 		}
 
 		// If the alert was created successfully, return a confirmation message
-		responseConfirmationString = fmt.Sprintf("The alert for item %s has been created successfully.\n The alert type is %d, and the price trigger is %d", item, alertType, priceTrigger)
+		responseConfirmationString = fmt.Sprintf("The alert for item %s has been created successfully.\n The alert type is %d, and the price trigger is %d", newAlertItem, alertType, priceTrigger)
 		responseConfirmationStringJSON, _ = json.Marshal(responseConfirmationString)
 		_, err = w.Write(responseConfirmationStringJSON)
 		if err != nil {
@@ -128,32 +137,55 @@ func GetAllDefinedAlertsHandler(ctx context.Context, alertsDefined store.AlertDe
 	}
 }
 
-func CreateNewAlertIDSplit(newAlertDetails string) (item string, alertType models.AlertType, priceTrigger int, err error) {
-	// Create a temporary variable to hold the alert type as a string & price trigger as an int64
-	var alertTypeAsString string
+func CreateNewAlertRequestBodyParameters(r *http.Request) (alertType models.AlertType, priceTrigger int, err error) {
+
+	//Variables to store the decoded string from message body
+	var decodedString struct {
+		alertType    string
+		priceTrigger string
+	}
+
+	//Conversion handling variables
 	var alertTypeInt int
 
-	// Split the new alert details into item, alert type and price trigger
-	alertDetails := strings.Split(newAlertDetails, ",")
-
-	if len(alertDetails) != 3 {
-		return "", 0, 0, fmt.Errorf("invalid alert details format")
-	}
-
-	item = alertDetails[0]
-	alertTypeAsString = alertDetails[1]
-	priceTrigger, err = strconv.Atoi(alertDetails[2])
+	// Read the entire body
+	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		return "", 0, 0, fmt.Errorf("invalid new alert details format")
+		return 0, 0, err
 	}
 
-	// Convert the alert type string to the AlertType enum
-	alertTypeInt, err = strconv.Atoi(alertTypeAsString)
+	//Decode the parameters from the request body - url encoded string
+	decodedValues, err := url.ParseQuery(string(bodyBytes))
 	if err != nil {
-		return "", 0, 0, fmt.Errorf("invalid alert type format")
+		return 0, 0, err
 	}
 
+	//Extract the alertType and priceTrigger from the decoded values
+	decodedString.alertType = decodedValues.Get("alertType")
+	decodedString.priceTrigger = decodedValues.Get("priceTrigger")
+
+	//Convert alertType from string to AlertType enum
+	alertTypeInt, err = strconv.Atoi(decodedString.alertType)
+	if err != nil {
+		return 0, 0, fmt.Errorf("invalid alert type format")
+	}
 	alertType = models.AlertType(alertTypeInt)
 
-	return item, alertType, priceTrigger, nil
+	//Convert priceTrigger from string to int
+	priceTrigger, err = strconv.Atoi(decodedString.priceTrigger)
+	if err != nil {
+		return 0, 0, fmt.Errorf("invalid new alert details format")
+	}
+
+	return alertType, priceTrigger, nil
+}
+
+func CreateNewAlertObtainItemFromURL(r *http.Request) (item string, err error) {
+
+	parts := strings.Split(r.URL.Path, "/")
+	if len(parts) >= 4 {
+		item = parts[2]
+	}
+
+	return item, nil
 }
