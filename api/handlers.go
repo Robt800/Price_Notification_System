@@ -56,9 +56,6 @@ func CreateNewAlertHandler(ctx context.Context, alertsDefined store.AlertDefStor
 		var responseConfirmationString string
 		var responseConfirmationStringJSON []byte
 
-		//Create key-value pairs (map) from the URL
-		//vars := mux.Vars(r)
-
 		//Obtain from the url which item we are interested in reporting - expected format is item,alertType,priceTrigger
 		newAlertItem, err := CreateNewAlertObtainItemFromURL(r)
 		if err != nil {

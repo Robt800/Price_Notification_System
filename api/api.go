@@ -15,7 +15,6 @@ func HTTPServer(ctx context.Context, itemTradeHistory store.TradeStore, alertsDe
 
 	//Define the routes
 	r.HandleFunc("/items/trade-history/{item}", GetTradesByItemHandler(ctx, itemTradeHistory)).Methods("GET")
-	//r.HandleFunc("/create_alert/{id}", CreateNewAlertHandler(ctx, alertsDefined)).Methods("POST")
 
 	r.HandleFunc("/items/{item}/alerts", CreateNewAlertHandler(ctx, alertsDefined)).Methods("POST") // Need to pass alertType & priceTrigger in request body, not URI
 
