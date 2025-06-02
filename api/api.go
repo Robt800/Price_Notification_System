@@ -14,9 +14,11 @@ func HTTPServer(ctx context.Context, itemTradeHistory store.TradeStore, alertsDe
 	r := mux.NewRouter()
 
 	//Define the routes
-	r.HandleFunc("/item_traded/{id}", GetTradesByItemHandler(ctx, itemTradeHistory)).Methods("GET")
-	r.HandleFunc("/create_alert/{id}", CreateNewAlertHandler(ctx, alertsDefined)).Methods("POST")
-	r.HandleFunc("/all_defined_alerts", GetAllDefinedAlertsHandler(ctx, alertsDefined)).Methods("GET")
+	r.HandleFunc("/items/trade-history/{item}", GetTradesByItemHandler(ctx, itemTradeHistory)).Methods("GET")
+
+	r.HandleFunc("/items/{item}/alerts", CreateNewAlertHandler(ctx, alertsDefined)).Methods("POST") // Need to pass alertType & priceTrigger in request body, not URI
+
+	r.HandleFunc("/items/all/alerts", GetAllDefinedAlertsHandler(ctx, alertsDefined)).Methods("GET")
 
 	//Check if the context has been cancelled
 	if ctx.Err() != nil {
