@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"log"
 )
@@ -14,9 +15,31 @@ type alert struct {
 	priceTrigger int
 }
 
+type env struct {
+	postgresUser     string
+	postgresPassword string
+	postgresDBName   string
+}
+
 func main() {
+
+	//load the .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Read the environment variables from the .env file
+	envVariables, errReadingEnvVariables := godotenv.Read(".env")
+	if errReadingEnvVariables != nil {
+		log.Fatalf("Error reading .env file: %v", errReadingEnvVariables)
+	}
+
+	// Print the environment variables to verify they are loaded correctly
+	fmt.Printf("Postgres User: %s, Password: %s, DB Name: %s\n", envVariables["POSTGRES_USER"], envVariables["POSTGRES_PASSWORD"], envVariables["POSTGRES_DB_NAME"])
+
 	// Replace with your actual credentials
-	connStr := "user=postgres password=winter101 dbname=postgres sslmode=disable"
+	connStr := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", envVariables["POSTGRES_USER"], envVariables["POSTGRES_PASSWORD"], envVariables["POSTGRES_DB_NAME"])
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
