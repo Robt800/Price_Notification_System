@@ -81,11 +81,11 @@ func main() {
 	var alerts []alert
 	// Iterate through the result set
 	for rows.Next() {
-		var alert alert
-		if err := rows.Scan(&alert.id, &alert.item, &alert.alertType, &alert.priceTrigger); err != nil {
+		var rowItem alert
+		if err := rows.Scan(&rowItem.id, &rowItem.item, &rowItem.alertType, &rowItem.priceTrigger); err != nil {
 			log.Fatalf("Failed to scan row: %v", err)
 		}
-		alerts = append(alerts, alert)
+		alerts = append(alerts, rowItem)
 	}
 
 	fmt.Printf("Alerts fetched from database: %+v\n", alerts)
