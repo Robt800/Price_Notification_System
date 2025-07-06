@@ -4,7 +4,6 @@ import (
 	"Price_Notification_System/models"
 	"database/sql"
 	"fmt"
-	"log"
 )
 
 // DBAlertStore - concrete implementation of the AlertDefStore interface
@@ -17,39 +16,39 @@ type DBAlertStore struct {
 var _ AlertDefStore = &DBAlertStore{}
 
 // NewDBAlertStore - creates a new instance of DBAlertStore
-func NewDBAlertStore(dbConnStr string) AlertDefStore {
+func NewDBAlertStore(dbConnStr string) (AlertDefStore, error) {
 
 	// Initialize the DBAlertStore with a database connection
 	db, err := sql.Open("postgres", dbConnStr)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("failed to connect to the database: %v", err)
 	}
 
 	// Ping the database to verify connection
 	err = db.Ping()
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("failed to connect to the database: %v", err)
 	}
 
 	//return &DBAlertStore{
 	return &DBAlertStore{
 		db: db,
-	}
+	}, nil
 }
 
 // NewDBAlertStoreWithData - creates a new instance of DBAlertStore with pre-populated data
-func NewDBAlertStoreWithData(dbConnStr string, data []models.AlertDef) AlertDefStore {
+func NewDBAlertStoreWithData(dbConnStr string, data []models.AlertDef) (AlertDefStore, error) {
 
 	// Initialize the DBAlertStore with a database connection
 	db, err := sql.Open("postgres", dbConnStr)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("failed to connect to the database: %v", err)
 	}
 
 	// Ping the database to verify connection
 	err = db.Ping()
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("failed to connect to the database: %v", err)
 	}
 
 	// Seed the database with initial data
@@ -59,53 +58,51 @@ func NewDBAlertStoreWithData(dbConnStr string, data []models.AlertDef) AlertDefS
 			"INSERT INTO alerts (item, alert_type, price_trigger) VALUES ($1, $2, $3)", alert.Item, alert.AlertType, alert.PriceTrigger,
 		)
 		if errDBExec != nil {
-			log.Fatal("Failed to insert initial data: ", errDBExec)
+			return nil, fmt.Errorf("failed to insert values into the database: %v", err)
 		}
 	}
 
 	// Return a new instance of DBAlertStore with the database connection
 	return &DBAlertStore{
 		db: db,
-	}
+	}, nil
 }
 
 // AddAlert - adds a new alert to the alerts active - i.e. the private memory store used to facilitate easier testing
-func (i *DBAlertStore) AddAlert(itemToAlert string, newAlertDef models.AlertValues) {
+func (i *DBAlertStore) AddAlert(itemToAlert string, newAlertDef models.AlertValues) error {
 
 	_, err := i.db.Exec("INSERT INTO alerts (item, alert_type, price_trigger) VALUES ($1, $2, $3)", itemToAlert, newAlertDef.AlertType, newAlertDef.PriceTrigger)
 	if err != nil {
-		log.Fatalf("Failed to insert data: %v", err)
+		return fmt.Errorf("failed to insert values into the database: %v", err)
 	} else {
 		fmt.Println("Data inserted successfully!")
 	}
 
+	return nil
 }
 
 // GetAlertsByItem - retrieves the alerts for a specific item
 func (i *DBAlertStore) GetAlertsByItem(item string) (data []models.AlertsByItemReturned, err error) {
 
 	// Query the database for all alerts
-	rows, err := i.db.Query("SELECT id, item, alert_type, price_trigger FROM alerts")
+	rows, err := i.db.Query("SELECT id, item, alert_type, price_trigger FROM alerts WHERE item = $1", item)
 	if err != nil {
-
-		log.Fatalf("Failed to query data: %v", err)
+		return nil, fmt.Errorf("failed to query data: %v", err)
 	}
 
 	for rows.Next() {
 		var alert models.AlertDef
 		errRowsScan := rows.Scan(&alert.Item, &alert.AlertType, &alert.PriceTrigger)
 		if errRowsScan != nil {
-			log.Fatalf("Failed to scan row: %v", errRowsScan)
+			return nil, fmt.Errorf("failed to scan row: %v", errRowsScan)
 		}
 
-		if alert.Item == item {
-			data = append(data, models.AlertsByItemReturned{
-				Item: item,
-				AlertValues: models.AlertValues{
-					AlertType:    alert.AlertType,
-					PriceTrigger: alert.PriceTrigger},
-			})
-		}
+		data = append(data, models.AlertsByItemReturned{
+			Item: item,
+			AlertValues: models.AlertValues{
+				AlertType:    alert.AlertType,
+				PriceTrigger: alert.PriceTrigger},
+		})
 	}
 
 	// Close the rows after processing
@@ -125,15 +122,14 @@ func (i *DBAlertStore) GetAllAlerts() (data []models.AlertDef, err error) {
 	// Query the database for all alerts
 	rows, err := i.db.Query("SELECT id, item, alert_type, price_trigger FROM alerts")
 	if err != nil {
-
-		log.Fatalf("Failed to query data: %v", err)
+		return nil, fmt.Errorf("failed to query data: %v", err)
 	}
 
 	for rows.Next() {
 		var alert models.AlertDef
 		errRowsScan := rows.Scan(&alert.Item, &alert.AlertType, &alert.PriceTrigger)
 		if errRowsScan != nil {
-			log.Fatalf("Failed to scan row: %v", errRowsScan)
+			return nil, fmt.Errorf("failed to scan row: %v", errRowsScan)
 		}
 
 		data = append(data, models.AlertDef{
