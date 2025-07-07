@@ -27,9 +27,10 @@ func NewInMemoryAlertStoreWithData(data *[]models.AlertDef) AlertDefStore {
 }
 
 // AddAlert - adds a new alert to the alerts active - i.e. the private memory store used to facilitate easier testing
-func (i *InMemoryAlertStore) AddAlert(itemToAlert string, newAlertDef models.AlertValues) {
+func (i *InMemoryAlertStore) AddAlert(itemToAlert string, newAlertDef models.AlertValues) error {
 	//i.data[it = newAlertDef
 	i.data = append(i.data, models.AlertDef{Item: itemToAlert, AlertValues: newAlertDef})
+	return nil
 }
 
 // GetAlertsByItem - retrieves the alerts for a specific item
