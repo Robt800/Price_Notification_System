@@ -4,6 +4,7 @@ import (
 	"Price_Notification_System/models"
 	"database/sql"
 	"fmt"
+	_ "github.com/lib/pq"
 )
 
 // DBAlertStore - concrete implementation of the AlertDefStore interface
@@ -27,7 +28,7 @@ func NewDBAlertStore(dbConnStr string) (AlertDefStore, error) {
 	// Ping the database to verify connection
 	err = db.Ping()
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to the database: %v", err)
+		return nil, fmt.Errorf("failed to connect (via ping) to the database: %v", err)
 	}
 
 	//return &DBAlertStore{

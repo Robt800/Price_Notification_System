@@ -2,6 +2,7 @@ package main
 
 import (
 	"Price_Notification_System/api"
+	"Price_Notification_System/config"
 	"Price_Notification_System/output"
 	"Price_Notification_System/producer/trades"
 	"Price_Notification_System/store"
@@ -24,6 +25,7 @@ func main() {
 		individualTrades chan trades.TradeItems
 		itemTradeHistory store.TradeStore
 		alertStore       store.AlertDefStore
+		errNewDBAlert    error
 	)
 
 	//create slice of objects that will be traded
@@ -36,7 +38,11 @@ func main() {
 
 	//Create instances of the HistoricalData/ Alerts store
 	itemTradeHistory = store.NewInMemoryTradeStore()
-	alertStore = store.NewInMemoryAlertStore()
+	//alertStore = store.NewInMemoryAlertStore()
+	alertStore, errNewDBAlert = store.NewDBAlertStore(config.DBConnStr)
+	if errNewDBAlert != nil {
+		log.Fatal(errNewDBAlert)
+	}
 
 	//mainCtx instance to store the context which will be used - time of 100secs is allowed before context cancellation
 	mainCtx = context.Background()
