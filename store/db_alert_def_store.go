@@ -85,6 +85,9 @@ func (i *DBAlertStore) AddAlert(itemToAlert string, newAlertDef models.AlertValu
 // GetAlertsByItem - retrieves the alerts for a specific item
 func (i *DBAlertStore) GetAlertsByItem(item string) (data []models.AlertsByItemReturned, err error) {
 
+	//Testing - see value of item
+	fmt.Printf("Querying for item: '%v'\n", item)
+
 	// Query the database for all alerts
 	rows, err := i.db.Query("SELECT id, item, alert_type, price_trigger FROM alerts WHERE item = $1", item)
 	if err != nil {
@@ -93,13 +96,14 @@ func (i *DBAlertStore) GetAlertsByItem(item string) (data []models.AlertsByItemR
 
 	for rows.Next() {
 		var alert models.AlertDef
-		errRowsScan := rows.Scan(&alert.Item, &alert.AlertType, &alert.PriceTrigger)
+		var id int
+		errRowsScan := rows.Scan(&id, &alert.Item, &alert.AlertType, &alert.PriceTrigger)
 		if errRowsScan != nil {
 			return nil, fmt.Errorf("failed to scan row: %v", errRowsScan)
 		}
 
 		data = append(data, models.AlertsByItemReturned{
-			Item: item,
+			Item: alert.Item,
 			AlertValues: models.AlertValues{
 				AlertType:    alert.AlertType,
 				PriceTrigger: alert.PriceTrigger},
@@ -128,7 +132,8 @@ func (i *DBAlertStore) GetAllAlerts() (data []models.AlertDef, err error) {
 
 	for rows.Next() {
 		var alert models.AlertDef
-		errRowsScan := rows.Scan(&alert.Item, &alert.AlertType, &alert.PriceTrigger)
+		var id int
+		errRowsScan := rows.Scan(&id, &alert.Item, &alert.AlertType, &alert.PriceTrigger)
 		if errRowsScan != nil {
 			return nil, fmt.Errorf("failed to scan row: %v", errRowsScan)
 		}

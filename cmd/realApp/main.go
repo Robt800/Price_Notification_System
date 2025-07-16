@@ -36,10 +36,24 @@ func main() {
 	individualTrades = make(chan trades.TradeItems)
 	defer close(individualTrades)
 
+	//Load any required environment variables
+	enVariables, errLoadingVariables := config.LoadEnvVariables()
+	if errLoadingVariables != nil {
+		log.Fatal("error loading environment variables: %v", errLoadingVariables)
+	}
+	//Load the DB connection string
+	dbConnStr := config.LoadDBConnectionStr(enVariables)
+
 	//Create instances of the HistoricalData/ Alerts store
-	itemTradeHistory = store.NewInMemoryTradeStore()
+	//itemTradeHistory = store.NewInMemoryTradeStore()
 	//alertStore = store.NewInMemoryAlertStore()
-	alertStore, errNewDBAlert = store.NewDBAlertStore(config.DBConnStr)
+
+	itemTradeHistory, errNewDBTrade := store.NewDBTradeStore(dbConnStr)
+	if errNewDBTrade != nil {
+		log.Fatal("error creating trade store:", errNewDBTrade)
+	}
+
+	alertStore, errNewDBAlert = store.NewDBAlertStore(dbConnStr)
 	if errNewDBAlert != nil {
 		log.Fatal(errNewDBAlert)
 	}

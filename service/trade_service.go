@@ -71,6 +71,10 @@ func CreateNewAlert(
 ) (err error) {
 
 	// Add the alert to the alert store
-	alertStore.AddAlert(item, newAlertDef)
+	err = alertStore.AddAlert(item, newAlertDef)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

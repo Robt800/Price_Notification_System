@@ -20,6 +20,8 @@ func HTTPServer(ctx context.Context, itemTradeHistory store.TradeStore, alertsDe
 
 	r.HandleFunc("/items/all/alerts", GetAllDefinedAlertsHandler(ctx, alertsDefined)).Methods("GET")
 
+	r.HandleFunc("/items/{item}/alerts", GetAllDefinedAlertsByItemHandler(ctx, alertsDefined)).Methods("GET") // Get all alerts for a specific item
+
 	//Check if the context has been cancelled
 	if ctx.Err() != nil {
 		fmt.Printf("Context error:%v", ctx.Err())

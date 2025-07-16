@@ -22,7 +22,12 @@ func Outputs(ctx context.Context, producedData chan trades.TradeItems, tradeStor
 			}
 			fmt.Fprintf(write, "%v\n", tradeData)
 			//fmt.Printf("%v\n", tradeData)
-			tradeStore.AddTrade(tradeData.Timestamp, models.HistoricalDataValues{Object: tradeData.Object, Price: tradeData.Price})
+			err := tradeStore.AddTrade(tradeData.Timestamp, models.HistoricalDataValues{Object: tradeData.Object, Price: tradeData.Price})
+			if err != nil {
+				fmt.Fprintf(write, "Error storing trade data: %v\n", err)
+			} else {
+				fmt.Fprintf(write, "Trade data stored successfully!\n")
+			}
 		case <-time.After(time.Second * 10):
 			fmt.Fprintf(write, "No trades in the last 10 seconds\n")
 			done = true

@@ -134,6 +134,42 @@ func GetAllDefinedAlertsHandler(ctx context.Context, alertsDefined store.AlertDe
 	}
 }
 
+func GetAllDefinedAlertsByItemHandler(ctx context.Context, alertsDefined store.AlertDefStore) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		//Create key-value pairs (map) from the URL
+		vars := mux.Vars(r)
+
+		//Obtain from the url which item we are interested in reporting
+		itemsToReport := vars["item"]
+
+		dataAlertsDefined, err := alertsDefined.GetAlertsByItem(itemsToReport)
+		if err != nil {
+			marshalledError, _ := json.Marshal(err)
+			_, errWrite := w.Write(marshalledError)
+			if errWrite != nil {
+				log.Println("The HTTP server failed to get the results due to error: ", err)
+			}
+			return
+		}
+
+		//Convert the results to JSON in readiness to respond with the results
+		resultsJSON, err := json.Marshal(dataAlertsDefined)
+		if err != nil {
+			errJSON, _ := json.Marshal(err)
+			_, _ = w.Write(errJSON)
+			return
+		}
+
+		//Write the results to the
+		_, errWrite := w.Write(resultsJSON)
+		if errWrite != nil {
+			errWriteJSON, _ := json.Marshal(errWrite)
+			_, _ = w.Write(errWriteJSON)
+		}
+	}
+}
+
 func CreateNewAlertRequestBodyParameters(r *http.Request) (alertType models.AlertType, priceTrigger int, err error) {
 
 	//Variables to store the decoded string from message body
