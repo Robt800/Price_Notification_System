@@ -19,7 +19,7 @@ func Outputs(ctx context.Context, producedData chan trades.TradeItems, tradeStor
 		case tradeData, ok := <-producedData:
 			if !ok {
 				done = true
-				break
+				return nil
 			}
 			_, _ = fmt.Fprintf(write, "%v\n", tradeData)
 

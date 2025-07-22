@@ -12,6 +12,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"os/signal"
 	"time"
 )
 
@@ -57,8 +58,8 @@ func main() {
 		log.Fatal(errNewDBAlert)
 	}
 
-	//mainCtx instance to store the context which will be used - time of 100secs is allowed before context cancellation
-	mainCtx = context.Background()
+	//mainCtx instance to store the context which will be used - // Set up a context that cancels when you hit Ctrl+C:
+	mainCtx, cancel = signal.NotifyContext(context.Background(), os.Interrupt)
 
 	//cancel function is called as final part of program to release resources associated with the context when the function returns
 	defer cancel()
@@ -68,7 +69,6 @@ func main() {
 
 	//Generate a 'trade' 'randomly' between 1-5 seconds
 	eg.Go(func() error {
-		defer close(individualTrades) // Ensure the channel is closed when this goroutine finishes
 		return tradeTrigger(ctx, objects, individualTrades)
 	})
 
@@ -97,6 +97,8 @@ func main() {
 // trades are triggered 'randomly' between 1 and 5 second intervals.
 func tradeTrigger(ctx context.Context, objects []string, individualTrades chan trades.TradeItems) error {
 
+	defer close(individualTrades) // Close the channel to signal no more trades will be sent
+
 	for i := 0; i < 300; i++ {
 		randomSecs := int((rand.Float64() * 4.0) + 1)
 
@@ -104,6 +106,7 @@ func tradeTrigger(ctx context.Context, objects []string, individualTrades chan t
 
 		case <-ctx.Done():
 			fmt.Println("Context cancelled, stopping trade trigger")
+
 			return ctx.Err()
 
 		default:
