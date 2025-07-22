@@ -34,7 +34,6 @@ func main() {
 
 	//Create variables that will hold the individual trades as the TradeItems type from the trades package
 	individualTrades = make(chan trades.TradeItems)
-	defer close(individualTrades)
 
 	//Load any required environment variables
 	enVariables, errLoadingVariables := config.LoadEnvVariables()
@@ -69,17 +68,18 @@ func main() {
 
 	//Generate a 'trade' 'randomly' between 1-5 seconds
 	eg.Go(func() error {
+		defer close(individualTrades) // Ensure the channel is closed when this goroutine finishes
 		return tradeTrigger(ctx, objects, individualTrades)
 	})
 
 	//Call the output function to process the trade
 	eg.Go(func() error {
-		return output.Outputs(ctx, individualTrades, itemTradeHistory, os.Stdout)
+		return output.Outputs(ctx, individualTrades, itemTradeHistory, alertStore, os.Stdout)
 	})
 
 	//Run the HTTP server to allow API connections
-	ctxHTTPServer := context.Background()
-	eg.Go(func() error { return api.HTTPServer(ctxHTTPServer, itemTradeHistory, alertStore) })
+	//ctxHTTPServer := context.Background()
+	eg.Go(func() error { return api.HTTPServer(ctx, itemTradeHistory, alertStore) })
 
 	//call method `Wait()` to ensure the program waits for all goroutines to complete
 	err := eg.Wait()
@@ -96,15 +96,26 @@ func main() {
 // Function that triggers a set amount of trades (equal to i max value).
 // trades are triggered 'randomly' between 1 and 5 second intervals.
 func tradeTrigger(ctx context.Context, objects []string, individualTrades chan trades.TradeItems) error {
+
 	for i := 0; i < 300; i++ {
 		randomSecs := int((rand.Float64() * 4.0) + 1)
-		time.Sleep(time.Duration(randomSecs) * time.Second)
 
-		errFromTrades := trades.Trade(ctx, objects, individualTrades)
-		if errFromTrades != nil {
-			return errFromTrades
+		select {
+
+		case <-ctx.Done():
+			fmt.Println("Context cancelled, stopping trade trigger")
+			return ctx.Err()
+
+		default:
+			time.Sleep(time.Duration(randomSecs) * time.Second)
+
+			errFromTrades := trades.Trade(ctx, objects, individualTrades)
+			if errFromTrades != nil {
+				return errFromTrades
+			}
+			fmt.Printf("Trade %d\n", i)
 		}
-		fmt.Printf("Trade %d\n", i)
 	}
+
 	return nil
 }
