@@ -109,8 +109,7 @@ func tradeTrigger(ctx context.Context, objects []string, individualTrades chan t
 
 			return ctx.Err()
 
-		default:
-			time.Sleep(time.Duration(randomSecs) * time.Second)
+		case <-time.After(time.Duration(randomSecs) * time.Second):
 
 			errFromTrades := trades.Trade(ctx, objects, individualTrades)
 			if errFromTrades != nil {
