@@ -6,6 +6,6 @@ import (
 )
 
 type TradeStore interface {
-	AddTrade(time.Time, models.HistoricalDataValues)
+	AddTrade(time.Time, models.HistoricalDataValues) error
 	GetTradeByItem(string) (data []models.HistoricalTradeDataReturned, err error)
 }

@@ -1,8 +1,8 @@
 package config
 
 import (
+	"fmt"
 	"github.com/joho/godotenv"
-	"log"
 )
 
 // EnvVariablesPostgres holds the environment variables for PostgreSQL connection
@@ -12,39 +12,41 @@ type EnvVariablesPostgres struct {
 	PostgresDBName   string
 }
 
-// ConnVarPostgres is a global variable that holds the PostgreSQL connection variables
-var ConnVarPostgres EnvVariablesPostgres
+// LoadEnvVariables function loads the environment variables from the .env file
+func LoadEnvVariables() (EnvVariablesPostgres, error) {
 
-// DBConnStr is the connection string for the PostgreSQL database
-var DBConnStr string
-
-// init function initialises the environment variables from the .env file
-func init() {
 	// Load environment variables from .env file
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatalf("Error loading the .env file: %v", err)
+		return EnvVariablesPostgres{"", "", ""}, fmt.Errorf("error loading the .env file: %v", err)
 	}
 
 	// Read the environment variables from the .env file
 	envVariables, errReadingEnvVariables := godotenv.Read(".env")
 	if errReadingEnvVariables != nil {
-		log.Fatalf("Error reading .env file: %v", errReadingEnvVariables)
+		return EnvVariablesPostgres{"", "", ""}, fmt.Errorf("error reading the .env file: %v", errReadingEnvVariables)
 	}
 
-	// Initialize the connection variables
-	ConnVarPostgres.PostgresUser = envVariables["POSTGRES_USER"]
-	ConnVarPostgres.PostgresPassword = envVariables["POSTGRES_PASSWORD"]
-	ConnVarPostgres.PostgresDBName = envVariables["POSTGRES_DB_NAME"]
+	// Check that the required environment variables are set, i.e. not nil
+	if envVariables["POSTGRES_USER"] == "" || envVariables["POSTGRES_PASSWORD"] == "" || envVariables["POSTGRES_DB_NAME"] == "" {
+		return EnvVariablesPostgres{"", "", ""}, fmt.Errorf("required environment variables are not set: POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB_NAME")
+	}
+
+	// Assuming no errors above - initialize the connection variables
+	return EnvVariablesPostgres{
+		PostgresUser:     envVariables["POSTGRES_USER"],
+		PostgresPassword: envVariables["POSTGRES_PASSWORD"],
+		PostgresDBName:   envVariables["POSTGRES_DB_NAME"],
+	}, nil
 }
 
-// init function constructs the PostgreSQL connection string
-func init() {
+// LoadDBConnectionStr function constructs the PostgreSQL connection string
+func LoadDBConnectionStr(connVariables EnvVariablesPostgres) string {
 
-	DBConnStr = "user=" + ConnVarPostgres.PostgresUser +
-		" password=" + ConnVarPostgres.PostgresPassword +
-		" dbname=" + ConnVarPostgres.PostgresDBName +
-		" sslmode=disable"
-
-	log.Println("PostgreSQL connection string initialized successfully.")
+	return fmt.Sprintf(
+		"user=" + connVariables.PostgresUser +
+			" password=" + connVariables.PostgresPassword +
+			" dbname=" + connVariables.PostgresDBName +
+			" sslmode=disable",
+	)
 }

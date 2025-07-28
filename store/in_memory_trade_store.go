@@ -28,8 +28,9 @@ func NewInMemoryTradeStoreWithData(data *map[time.Time]models.HistoricalDataValu
 	}
 }
 
-func (i *InMemoryTradeStore) AddTrade(tradeTime time.Time, tradeValues models.HistoricalDataValues) {
+func (i *InMemoryTradeStore) AddTrade(tradeTime time.Time, tradeValues models.HistoricalDataValues) error {
 	i.TradeData[tradeTime] = tradeValues
+	return nil
 }
 
 func (i *InMemoryTradeStore) GetTradeByItem(item string) (data []models.HistoricalTradeDataReturned, err error) {
