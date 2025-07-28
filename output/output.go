@@ -40,6 +40,7 @@ func Outputs(ctx context.Context, producedData chan trades.TradeItems, tradeStor
 				errAddingTrade := tradeStore.AddTrade(tradeData.Timestamp, models.HistoricalDataValues{Object: tradeData.Object, Price: tradeData.Price})
 				if errAddingTrade != nil {
 					fmt.Fprintf(write, "Error storing trade data: %v\n", errAddingTrade)
+					return errAddingTrade
 				} else {
 					fmt.Fprintf(write, "Trade data stored successfully!\n")
 				}

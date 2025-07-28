@@ -27,7 +27,12 @@ func LoadEnvVariables() (EnvVariablesPostgres, error) {
 		return EnvVariablesPostgres{"", "", ""}, fmt.Errorf("error reading the .env file: %v", errReadingEnvVariables)
 	}
 
-	// Initialize the connection variables
+	// Check that the required environment variables are set, i.e. not nil
+	if envVariables["POSTGRES_USER"] == "" || envVariables["POSTGRES_PASSWORD"] == "" || envVariables["POSTGRES_DB_NAME"] == "" {
+		return EnvVariablesPostgres{"", "", ""}, fmt.Errorf("required environment variables are not set: POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB_NAME")
+	}
+
+	// Assuming no errors above - initialize the connection variables
 	return EnvVariablesPostgres{
 		PostgresUser:     envVariables["POSTGRES_USER"],
 		PostgresPassword: envVariables["POSTGRES_PASSWORD"],
