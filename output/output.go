@@ -11,19 +11,17 @@ import (
 
 // Outputs ensures the data from the channel (i.e. the trade) is genuine - if it is, it prints it
 func Outputs(ctx context.Context, producedData chan trades.TradeItems, tradeStore store.TradeStore, alertStore store.AlertDefStore, write io.Writer) error {
-	done := false
-	for !done {
+
+	for {
 		select {
 
 		case <-ctx.Done():
 			fmt.Fprintf(write, "Context cancelled\n")
 			fmt.Fprintf(write, "The error was: %v\n", ctx.Err())
-			done = true
 			return ctx.Err()
 
 		case tradeData, ok := <-producedData:
 			if !ok {
-				done = true
 				return nil
 			}
 			_, _ = fmt.Fprintf(write, "%v\n", tradeData)
@@ -48,7 +46,6 @@ func Outputs(ctx context.Context, producedData chan trades.TradeItems, tradeStor
 			}
 		}
 	}
-	return nil
 }
 
 func tradeMeetsAlertCriteria(tradeData trades.TradeItems, alerts []models.AlertsByItemReturned) bool {
