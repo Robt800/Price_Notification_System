@@ -25,6 +25,7 @@ func HTTPServer(ctx context.Context, itemTradeHistory store.TradeStore, alertsDe
 	r.HandleFunc("/items/{item}/alerts", GetAllDefinedAlertsByItemHandler(ctx, alertsDefined)).Methods("GET") // Get all alerts for a specific item
 
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK) // set status code 200
 		w.Write([]byte("OK"))
 	})
 
