@@ -30,7 +30,6 @@ func Outputs(ctx context.Context, producedData chan trades.TradeItems, tradeStor
 			alerts, err := alertStore.GetAlertsByItem(tradeData.Object)
 			if err != nil {
 				fmt.Fprintf(write, "Error retrieving alerts for item %s: %v\n", tradeData.Object, err)
-				return err
 			}
 
 			// Determine if the trade matches any alert criteria
@@ -40,7 +39,6 @@ func Outputs(ctx context.Context, producedData chan trades.TradeItems, tradeStor
 				errAddingTrade := tradeStore.AddTrade(tradeData.Timestamp, models.HistoricalDataValues{Object: tradeData.Object, Price: tradeData.Price})
 				if errAddingTrade != nil {
 					fmt.Fprintf(write, "Error storing trade data: %v\n", errAddingTrade)
-					return errAddingTrade
 				} else {
 					fmt.Fprintf(write, "Trade data stored successfully!\n")
 				}

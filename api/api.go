@@ -24,14 +24,10 @@ func HTTPServer(ctx context.Context, itemTradeHistory store.TradeStore, alertsDe
 
 	r.HandleFunc("/items/{item}/alerts", GetAllDefinedAlertsByItemHandler(ctx, alertsDefined)).Methods("GET") // Get all alerts for a specific item
 
-	//Check if the context has been cancelled
-	//if ctx.Err() != nil {
-	//	fmt.Printf("Context error:%v", ctx.Err())
-	//	return ctx.Err()
-	//}
-
-	//Start the server
-	//httpError := http.ListenAndServe(":8080", r)
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK) // set status code 200
+		w.Write([]byte("OK"))
+	})
 
 	//Create the server instance
 	srv := &http.Server{Addr: ":8080", Handler: r}
@@ -43,6 +39,7 @@ func HTTPServer(ctx context.Context, itemTradeHistory store.TradeStore, alertsDe
 		// give server up to 5 seconds to shut down
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
+
 		if errShutdown := srv.Shutdown(shutdownCtx); errShutdown != nil {
 			fmt.Printf("HTTP server Shutdown error: %v\n", errShutdown)
 		}
@@ -56,23 +53,3 @@ func HTTPServer(ctx context.Context, itemTradeHistory store.TradeStore, alertsDe
 	}
 	return err // unexpected error
 }
-
-//// Wait for the server to close
-//errHTTPServer := srv.ListenAndServe()
-//if err == http.ErrServerClosed {
-//	fmt.Println("HTTP server closed")
-//	return nil // expected after shutdown
-//}
-//return errHTTPServer // unexpected error
-
-//
-//
-//
-//
-//if httpError != nil {
-//	fmt.Printf("HTTP server error:%v", httpError)
-//	return httpError
-//}
-
-//return nil
-//}
