@@ -56,8 +56,8 @@ func NewDBAlertStoreWithData(dbConnStr string, data []models.AlertDef) (AlertDef
 	for _, alert := range data {
 		// Replace with your actual insert logic and fields
 		_, errDBExec := db.Exec(
-			"INSERT INTO alerts (item, alert_type, price_trigger) VALUES ($1, $2, $3)", alert.Item, alert.AlertType, alert.PriceTrigger,
-		)
+			"INSERT INTO alerts (item, alert_type, price_trigger, email_recipient) VALUES ($1, $2, $3, $4)",
+			alert.Item, alert.AlertType, alert.PriceTrigger, alert.EmailRecipient)
 		if errDBExec != nil {
 			return nil, fmt.Errorf("failed to insert values into the database: %v", err)
 		}
@@ -70,9 +70,10 @@ func NewDBAlertStoreWithData(dbConnStr string, data []models.AlertDef) (AlertDef
 }
 
 // AddAlert - adds a new alert to the alerts active - i.e. the private memory store used to facilitate easier testing
-func (i *DBAlertStore) AddAlert(itemToAlert string, newAlertDef models.AlertValues) error {
+func (i *DBAlertStore) AddAlert(itemToAlert string, newAlertDef models.AlertValues, emailRecipient string) error {
 
-	_, err := i.db.Exec("INSERT INTO alerts (item, alert_type, price_trigger) VALUES ($1, $2, $3)", itemToAlert, newAlertDef.AlertType, newAlertDef.PriceTrigger)
+	_, err := i.db.Exec("INSERT INTO alerts (item, alert_type, price_trigger, email_recipient) VALUES ($1, $2, $3, $4)",
+		itemToAlert, newAlertDef.AlertType, newAlertDef.PriceTrigger, emailRecipient)
 	if err != nil {
 		return fmt.Errorf("failed to insert values into the database: %v", err)
 	} else {
@@ -89,7 +90,7 @@ func (i *DBAlertStore) GetAlertsByItem(item string) (data []models.AlertsByItemR
 	fmt.Printf("Querying for item: '%v'\n", item)
 
 	// Query the database for all alerts
-	rows, err := i.db.Query("SELECT id, item, alert_type, price_trigger FROM alerts WHERE item = $1", item)
+	rows, err := i.db.Query("SELECT id, item, alert_type, price_trigger, email_recipient FROM alerts WHERE item = $1", item)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query data: %v", err)
 	}
@@ -97,7 +98,7 @@ func (i *DBAlertStore) GetAlertsByItem(item string) (data []models.AlertsByItemR
 	for rows.Next() {
 		var alert models.AlertDef
 		var id int
-		errRowsScan := rows.Scan(&id, &alert.Item, &alert.AlertType, &alert.PriceTrigger)
+		errRowsScan := rows.Scan(&id, &alert.Item, &alert.AlertType, &alert.PriceTrigger, &alert.EmailRecipient)
 		if errRowsScan != nil {
 			return nil, fmt.Errorf("failed to scan row: %v", errRowsScan)
 		}
@@ -107,6 +108,7 @@ func (i *DBAlertStore) GetAlertsByItem(item string) (data []models.AlertsByItemR
 			AlertValues: models.AlertValues{
 				AlertType:    alert.AlertType,
 				PriceTrigger: alert.PriceTrigger},
+			EmailRecipient: alert.EmailRecipient,
 		})
 	}
 
@@ -125,7 +127,7 @@ func (i *DBAlertStore) GetAlertsByItem(item string) (data []models.AlertsByItemR
 func (i *DBAlertStore) GetAllAlerts() (data []models.AlertDef, err error) {
 
 	// Query the database for all alerts
-	rows, err := i.db.Query("SELECT id, item, alert_type, price_trigger FROM alerts")
+	rows, err := i.db.Query("SELECT id, item, alert_type, price_trigger, email_recipient FROM alerts")
 	if err != nil {
 		return nil, fmt.Errorf("failed to query data: %v", err)
 	}
@@ -133,7 +135,7 @@ func (i *DBAlertStore) GetAllAlerts() (data []models.AlertDef, err error) {
 	for rows.Next() {
 		var alert models.AlertDef
 		var id int
-		errRowsScan := rows.Scan(&id, &alert.Item, &alert.AlertType, &alert.PriceTrigger)
+		errRowsScan := rows.Scan(&id, &alert.Item, &alert.AlertType, &alert.PriceTrigger, &alert.EmailRecipient)
 		if errRowsScan != nil {
 			return nil, fmt.Errorf("failed to scan row: %v", errRowsScan)
 		}
@@ -143,6 +145,7 @@ func (i *DBAlertStore) GetAllAlerts() (data []models.AlertDef, err error) {
 			AlertValues: models.AlertValues{
 				AlertType:    alert.AlertType,
 				PriceTrigger: alert.PriceTrigger},
+			EmailRecipient: alert.EmailRecipient,
 		})
 	}
 

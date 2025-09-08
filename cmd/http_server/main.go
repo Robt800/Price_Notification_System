@@ -24,7 +24,7 @@ func main() {
 	)
 
 	//Load any required environment variables
-	enVariables, errLoadingVariables := config.LoadEnvVariables()
+	enVariables, errLoadingVariables := config.LoadEnvVariablesPostgres()
 	if errLoadingVariables != nil {
 		log.Fatal("error loading environment variables: %v", errLoadingVariables)
 	}

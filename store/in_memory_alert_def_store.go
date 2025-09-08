@@ -27,9 +27,9 @@ func NewInMemoryAlertStoreWithData(data *[]models.AlertDef) AlertDefStore {
 }
 
 // AddAlert - adds a new alert to the alerts active - i.e. the private memory store used to facilitate easier testing
-func (i *InMemoryAlertStore) AddAlert(itemToAlert string, newAlertDef models.AlertValues) error {
+func (i *InMemoryAlertStore) AddAlert(itemToAlert string, newAlertDef models.AlertValues, emailRecipient string) error {
 	//i.data[it = newAlertDef
-	i.data = append(i.data, models.AlertDef{Item: itemToAlert, AlertValues: newAlertDef})
+	i.data = append(i.data, models.AlertDef{Item: itemToAlert, AlertValues: newAlertDef, EmailRecipient: emailRecipient})
 	return nil
 }
 
@@ -44,6 +44,7 @@ func (i *InMemoryAlertStore) GetAlertsByItem(item string) (data []models.AlertsB
 				AlertValues: models.AlertValues{
 					AlertType:    v.AlertType,
 					PriceTrigger: v.PriceTrigger},
+				EmailRecipient: v.EmailRecipient,
 			}
 
 			data = append(data, matchingData)

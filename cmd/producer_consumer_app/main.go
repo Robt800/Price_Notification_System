@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Price_Notification_System/client/emails"
 	"Price_Notification_System/config"
 	"Price_Notification_System/output"
 	"Price_Notification_System/producer/trades"
@@ -36,12 +37,17 @@ func main() {
 	individualTrades = make(chan trades.TradeItems)
 
 	//Load any required environment variables
-	enVariables, errLoadingVariables := config.LoadEnvVariables()
+	enVariables, errLoadingVariables := config.LoadEnvVariablesPostgres()
 	if errLoadingVariables != nil {
 		log.Fatal("error loading environment variables: %v", errLoadingVariables)
 	}
 	//Load the DB connection string
 	dbConnStr := config.LoadDBConnectionStr(enVariables)
+	//Load the Brevo environment variables
+	brevoVariables, errLoadingBrevoVariables := config.LoadEnvVariablesBrevo()
+	if errLoadingBrevoVariables != nil {
+		log.Fatal("error loading Brevo environment variables: %v", errLoadingBrevoVariables)
+	}
 
 	//Create instances of the HistoricalData/ Alerts store
 	//itemTradeHistory = store.NewInMemoryTradeStore()
@@ -56,6 +62,9 @@ func main() {
 	if errNewDBAlert != nil {
 		log.Fatal(errNewDBAlert)
 	}
+
+	//Set the Brevo API key and sender email address
+	emailClient := emails.NewBrevoClient(brevoVariables.BrevoAPIKey)
 
 	//mainCtx instance to store the context which will be used - // Set up a context that cancels when you hit Ctrl+C:
 	mainCtx, cancel = signal.NotifyContext(context.Background(), os.Interrupt)
@@ -73,7 +82,7 @@ func main() {
 
 	//Call the output function to process the trade
 	eg.Go(func() error {
-		return output.Outputs(ctx, individualTrades, itemTradeHistory, alertStore, os.Stdout)
+		return output.Outputs(ctx, individualTrades, itemTradeHistory, alertStore, emailClient, brevoVariables.SenderEmailAddress, os.Stdout)
 	})
 
 	//call method `Wait()` to ensure the program waits for all goroutines to complete
