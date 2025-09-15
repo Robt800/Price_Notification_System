@@ -71,7 +71,7 @@ func TestOutput(t *testing.T) {
 			}()
 
 			// Call the Outputs function
-			err := Outputs(ctx, tt.producedData, tt.tradeStore, &tt.write)
+			err := Outputs(ctx, tt.producedData, tt.tradeStore, &tt.write, nil)
 
 			// Split the strings.Builder into a slice of strings
 			writeSliceStrings := splitStringsBuilder(tt.write)

@@ -9,7 +9,6 @@ import (
 
 type BrevoClient struct {
 	api *brevo.APIClient
-	ctx context.Context
 }
 
 // compile time check to ensure that inMemoryTradeStore implements the TradeStore interface
@@ -23,11 +22,10 @@ func NewBrevoClient(apiKey string) *BrevoClient {
 	client := brevo.NewAPIClient(cfg)
 	return &BrevoClient{
 		api: client,
-		ctx: context.Background(),
 	}
 }
 
-func (b *BrevoClient) SendEmail(parameters models.EmailParameters) (status string, err error) {
+func (b *BrevoClient) SendEmail(ctx context.Context, parameters models.EmailParameters) (status string, err error) {
 	//Build an instance of the SendSmtpEmail struct with the necessary parameters
 	email := brevo.SendSmtpEmail{
 		Sender: &brevo.SendSmtpEmailSender{
@@ -41,7 +39,7 @@ func (b *BrevoClient) SendEmail(parameters models.EmailParameters) (status strin
 	}
 
 	//Make the API call to send the email
-	_, resp, err := b.api.TransactionalEmailsApi.SendTransacEmail(b.ctx, email)
+	_, resp, err := b.api.TransactionalEmailsApi.SendTransacEmail(ctx, email)
 	if err != nil {
 		fmt.Printf("Error when calling `TransactionalEmailsApi.SendTransacEmail`: %v\n", err)
 		return "Failed", err
