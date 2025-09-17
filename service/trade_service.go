@@ -68,10 +68,11 @@ func CreateNewAlert(
 	alertStore store.AlertDefStore,
 	item string,
 	newAlertDef models.AlertValues,
+	emailRecipient string,
 ) (err error) {
 
 	// Add the alert to the alert store
-	err = alertStore.AddAlert(item, newAlertDef)
+	err = alertStore.AddAlert(item, newAlertDef, emailRecipient)
 	if err != nil {
 		return err
 	}

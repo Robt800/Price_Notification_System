@@ -11,7 +11,7 @@ import (
 func TestGetAlertsByItem(t *testing.T) {
 
 	//Load the environment variables
-	enVariables, err := config.LoadEnvVariables()
+	enVariables, err := config.LoadEnvVariablesPostgres()
 	if err != nil {
 		t.Fatalf("Error loading environment variables: %v", err)
 	}
@@ -44,13 +44,13 @@ func TestGetAlertsByItem(t *testing.T) {
 			alertDefStore:      alertDefStore,
 			errorCreatingStore: errorCreatingStore,
 			expected: []models.AlertsByItemReturned{
-				{Item: "Batman", AlertValues: models.AlertValues{AlertType: models.PriceAlertLowPrice, PriceTrigger: 500}},
-				{Item: "Batman", AlertValues: models.AlertValues{AlertType: models.PriceAlertLowPrice, PriceTrigger: 500}},
-				{Item: "Batman", AlertValues: models.AlertValues{AlertType: models.PriceAlertLowPrice, PriceTrigger: 500}},
-				{Item: "Batman", AlertValues: models.AlertValues{AlertType: models.PriceAlertLowPrice, PriceTrigger: 500}},
-				{Item: "Batman", AlertValues: models.AlertValues{AlertType: models.PriceAlertLowPrice, PriceTrigger: 500}},
-				{Item: "Batman", AlertValues: models.AlertValues{AlertType: models.PriceAlertLowPrice, PriceTrigger: 500}},
-				{Item: "Batman", AlertValues: models.AlertValues{AlertType: models.PriceAlertLowPrice, PriceTrigger: 200}},
+				{Item: "Batman", AlertValues: models.AlertValues{AlertType: models.PriceAlertLowPrice, PriceTrigger: 500}, EmailRecipient: "rob@wealthresources.co.uk"},
+				{Item: "Batman", AlertValues: models.AlertValues{AlertType: models.PriceAlertLowPrice, PriceTrigger: 500}, EmailRecipient: "rob@wealthresources.co.uk"},
+				{Item: "Batman", AlertValues: models.AlertValues{AlertType: models.PriceAlertLowPrice, PriceTrigger: 500}, EmailRecipient: "rob@wealthresources.co.uk"},
+				{Item: "Batman", AlertValues: models.AlertValues{AlertType: models.PriceAlertLowPrice, PriceTrigger: 500}, EmailRecipient: "rob@wealthresources.co.uk"},
+				{Item: "Batman", AlertValues: models.AlertValues{AlertType: models.PriceAlertLowPrice, PriceTrigger: 500}, EmailRecipient: "rob@wealthresources.co.uk"},
+				{Item: "Batman", AlertValues: models.AlertValues{AlertType: models.PriceAlertLowPrice, PriceTrigger: 500}, EmailRecipient: "rob@wealthresources.co.uk"},
+				{Item: "Batman", AlertValues: models.AlertValues{AlertType: models.PriceAlertLowPrice, PriceTrigger: 200}, EmailRecipient: "rob@wealthresources.co.uk"},
 			},
 			wantErr: false,
 		},

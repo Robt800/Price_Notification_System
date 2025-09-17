@@ -39,12 +39,14 @@ type AlertValues struct {
 type AlertDef struct {
 	Item string
 	AlertValues
+	EmailRecipient string
 }
 
 // HistoricalTradeAlertReturned - used to return the historical trades that match specific alerts
 type HistoricalTradeAlertReturned struct {
 	HistoricalTradeDataReturned
 	AlertValues
+	EmailRecipient string
 }
 
 // ErrNoDataMatchingAlertsFound - error message for when a trade is not found
@@ -54,7 +56,17 @@ var ErrNoDataMatchingAlertsFound = errors.New("no trades matching alerts found")
 type AlertsByItemReturned struct {
 	Item string
 	AlertValues
+	EmailRecipient string
 }
 
 // ErrNoAlertsForItemFound - error message for when an alert is not found
 var ErrNoAlertsForItemFound = errors.New("no alerts for item found")
+
+// EmailParameters - used to pass parameters for sending an email
+type EmailParameters struct {
+	SenderEmail    string
+	RecipientEmail string
+	RecipientName  string
+	Subject        string
+	BodyText       string
+}
